@@ -1,0 +1,49 @@
+/* =====================================================
+   VELORA APP LAYOUT STYLES
+   File: Frontend/src/components/layout/AppLayout.css
+   ===================================================== */
+
+.velora-app-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-primary, #FAF8FA);
+}
+
+.velora-safetrack-banner {
+  background: linear-gradient(135deg, #E11D48 0%, #BE123C 100%);
+  color: #FFFFFF;
+  padding: 10px 16px;
+  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.25);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  position: sticky;
+  top: 56px;
+  z-index: 1020;
+}
+
+.safetrack-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.safetrack-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.velora-main-content {
+  flex-grow: 1;
+  padding-bottom: 76px;
+}
+
+@media (min-width: 992px) {
+  .velora-main-content {
+    padding-bottom: 0;
+  }
+}

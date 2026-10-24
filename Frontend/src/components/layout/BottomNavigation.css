@@ -1,0 +1,101 @@
+/* =====================================================
+   VELORA LUXURY MOBILE BOTTOM NAVIGATION
+   File: Frontend/src/components/layout/BottomNavigation.css
+   ===================================================== */
+
+.companion-bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1040;
+  padding: 6px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+  background: rgba(255, 255, 255, 0.94);
+  border-top: 1px solid rgba(225, 29, 72, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 -4px 20px rgba(20, 8, 23, 0.06);
+}
+
+.bottom-nav-inner {
+  max-width: 520px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.bottom-nav-item {
+  position: relative;
+  min-width: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  color: #8C828D;
+  font-size: 10px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  user-select: none;
+  padding: 4px 6px;
+  border-radius: 12px;
+}
+
+.bottom-nav-icon {
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bottom-nav-item:hover {
+  color: #E11D48;
+}
+
+.bottom-nav-item.active {
+  color: #E11D48;
+  font-weight: 700;
+}
+
+.bottom-nav-item.active .bottom-nav-icon {
+  transform: translateY(-2px);
+}
+
+/* CENTER "RIGHT NOW" / "AVAILABLE" ELEVATED FLOATING BUTTON */
+.center-item {
+  margin-top: -16px;
+}
+
+.right-now-button {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-radius: 50%;
+  color: #FFFFFF;
+  background: linear-gradient(135deg, #FF3366 0%, #E11D48 60%, #BE123C 100%);
+  border: 3.5px solid #FFFFFF;
+  box-shadow: 0 8px 22px rgba(225, 29, 72, 0.42);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.center-item:hover .right-now-button {
+  transform: scale(1.06);
+  box-shadow: 0 10px 26px rgba(225, 29, 72, 0.55);
+}
+
+.right-now-dot {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10B981;
+  border: 1.5px solid #FFFFFF;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.8);
+}

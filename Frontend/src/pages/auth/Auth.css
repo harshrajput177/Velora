@@ -1,0 +1,503 @@
+/* =====================================================
+   VELORA AUTHENTICATION (LOGIN & REGISTER) STYLES
+   File: Frontend/src/pages/auth/Auth.css
+   ===================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&display=swap');
+
+.velora-auth-root {
+  min-height: calc(100vh - 72px);
+  background: #FAF8FA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #231628;
+}
+
+.auth-card-wrapper {
+  width: 100%;
+  max-width: 1060px;
+  background: #FFFFFF;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 25px 60px -15px rgba(24, 13, 29, 0.12), 0 0 0 1px #EFE6EC;
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  position: relative;
+}
+
+/* LEFT PHOTO HERO COLUMN */
+.auth-photo-col {
+  position: relative;
+  background-image: url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1200&auto=format&fit=crop&q=80');
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 32px 28px 36px;
+  min-height: 600px;
+  overflow: hidden;
+}
+
+.auth-photo-col::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(20, 8, 23, 0.25) 0%, rgba(20, 8, 23, 0.68) 100%);
+  z-index: 1;
+}
+
+/* CURVED TOP BADGE (Hanging crest) */
+.auth-crest-badge {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 110px;
+  height: 124px;
+  background: linear-gradient(180deg, #FF4565 0%, #E11D48 100%);
+  border-radius: 0 0 55px 55px;
+  box-shadow: 0 12px 28px rgba(225, 29, 72, 0.45);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #FFFFFF;
+  z-index: 3;
+  padding-bottom: 8px;
+}
+
+.auth-crest-heart-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-crest-heart-wrap svg {
+  stroke-width: 2.5;
+}
+
+.auth-crest-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+/* FLOATING SEAM TAB */
+.auth-seam-tab {
+  position: absolute;
+  top: 48px;
+  right: -22px;
+  z-index: 4;
+  background: #FFFFFF;
+  color: #E11D48;
+  font-weight: 700;
+  font-size: 0.88rem;
+  padding: 8px 22px;
+  border-radius: 9999px;
+  text-decoration: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  border: 1px solid #FCD4DD;
+  transition: all 0.2s ease;
+}
+
+.auth-seam-tab:hover {
+  background: #FFF1F4;
+  color: #BE123C;
+  transform: scale(1.04);
+}
+
+/* SOCIAL & DEMO BUTTONS IN PHOTO */
+.auth-photo-footer {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.btn-social-fb {
+  background: #3B5998;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 9999px;
+  height: 48px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(59, 89, 152, 0.35);
+  cursor: pointer;
+  width: 100%;
+}
+
+.btn-social-fb:hover {
+  background: #324b80;
+  transform: translateY(-1px);
+}
+
+.btn-social-google {
+  background: #E04836;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 9999px;
+  height: 48px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(224, 72, 54, 0.35);
+  cursor: pointer;
+  width: 100%;
+}
+
+.btn-social-google:hover {
+  background: #c83d2d;
+  transform: translateY(-1px);
+}
+
+/* RIGHT FORM COLUMN */
+.auth-form-col {
+  padding: 48px 44px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #FFFFFF;
+}
+
+.auth-heading {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #140817;
+  margin-bottom: 6px;
+  letter-spacing: -0.5px;
+}
+
+.auth-subheading {
+  font-size: 0.92rem;
+  color: #6B5B72;
+  margin-bottom: 28px;
+}
+
+/* INPUT FIELDS WITH ICON ON THE RIGHT */
+.auth-field-group {
+  margin-bottom: 20px;
+}
+
+.auth-field-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.auth-input {
+  width: 100%;
+  height: 52px;
+  border: 1.5px solid #EFE6EC;
+  border-radius: 14px;
+  padding: 0 48px 0 18px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #140817;
+  background: #FFFFFF;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-family: inherit;
+}
+
+.auth-input::placeholder {
+  color: #9E8E9F;
+  font-weight: 500;
+}
+
+.auth-input:focus {
+  border-color: #E11D48;
+  box-shadow: 0 0 0 3.5px rgba(225, 29, 72, 0.12);
+}
+
+.auth-field-icon {
+  position: absolute;
+  right: 18px;
+  color: #E11D48;
+  pointer-events: none;
+  transition: color 0.2s ease;
+}
+
+.auth-eye-btn {
+  position: absolute;
+  right: 14px;
+  border: none;
+  background: transparent;
+  color: #E11D48;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* OPTIONS ROW: Remember Me + Forgot Password */
+.auth-options-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  font-size: 0.88rem;
+}
+
+.auth-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #6B5B72;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+.auth-checkbox-label input {
+  accent-color: #E11D48;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.auth-forgot-link {
+  color: #E11D48;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.88rem;
+  transition: color 0.15s;
+}
+
+.auth-forgot-link:hover {
+  color: #BE123C;
+  text-decoration: underline;
+}
+
+/* PRIMARY ACTION BUTTON (Vibrant Coral-Rose Gradient) */
+.auth-btn-primary {
+  width: 100%;
+  height: 52px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #FF4565 0%, #FF6445 100%);
+  border: none;
+  color: #FFFFFF;
+  font-weight: 800;
+  font-size: 1.05rem;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(225, 29, 72, 0.35);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.auth-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(225, 29, 72, 0.45);
+}
+
+.auth-btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 1-CLICK DEMO LOGIN BOX */
+.demo-credentials-box {
+  margin-top: 24px;
+  padding: 14px 16px;
+  background: #FFF1F4;
+  border: 1px dashed #FCD4DD;
+  border-radius: 16px;
+}
+
+.demo-credentials-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #BE123C;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.demo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.btn-demo-pill {
+  background: #FFFFFF;
+  border: 1px solid #FCD4DD;
+  border-radius: 9999px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #140817;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-demo-pill:hover {
+  background: #FFE4EA;
+  border-color: #E11D48;
+  color: #BE123C;
+  transform: translateY(-1px);
+}
+
+.demo-tag {
+  font-size: 0.68rem;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background: #E11D48;
+  color: #FFF;
+  font-weight: 800;
+}
+
+/* BOTTOM FOOTER LINK */
+.auth-footer {
+  margin-top: 26px;
+  text-align: center;
+  font-size: 0.92rem;
+  color: #6B5B72;
+}
+
+.auth-footer-link {
+  color: #140817;
+  font-weight: 800;
+  text-decoration: none;
+  margin-left: 4px;
+  transition: color 0.15s;
+}
+
+.auth-footer-link:hover {
+  color: #E11D48;
+}
+
+/* =======================================================
+   MOBILE VIEW OPTIMIZATION (CLEAN, SMOOTH, PROFESSIONAL)
+   ======================================================= */
+@media (max-width: 860px) {
+  .velora-auth-root {
+    padding: 0;
+    background: #FFFFFF;
+  }
+
+  .auth-card-wrapper {
+    grid-template-columns: 1fr;
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+    max-width: 100%;
+  }
+
+  /* Mobile Top Banner with Hanging Crest */
+  .auth-photo-col {
+    min-height: 200px;
+    height: 200px;
+    padding: 16px;
+    border-radius: 0 0 28px 28px;
+  }
+
+  .auth-crest-badge {
+    width: 90px;
+    height: 98px;
+    border-radius: 0 0 44px 44px;
+  }
+
+  .auth-crest-title {
+    font-size: 0.95rem;
+  }
+
+  .auth-seam-tab {
+    display: none;
+  }
+
+  .auth-photo-footer {
+    display: none;
+  }
+
+  /* Mobile Card Form */
+  .auth-form-col {
+    padding: 26px 18px 40px;
+    border-radius: 28px 28px 0 0;
+    margin-top: -24px;
+    position: relative;
+    z-index: 5;
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.04);
+  }
+
+  .auth-mobile-tabs {
+    display: flex;
+    background: #FAF7F9;
+    padding: 4px;
+    border-radius: 9999px;
+    margin-bottom: 20px;
+    border: 1px solid #EFE6EC;
+  }
+
+  .auth-mobile-tab-btn {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    border-radius: 9999px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-decoration: none;
+    color: #6B5B72;
+    transition: all 0.2s ease;
+  }
+
+  .auth-mobile-tab-btn.active {
+    background: #FFFFFF;
+    color: #E11D48;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .auth-heading {
+    font-size: 1.55rem;
+    text-align: center;
+  }
+
+  .auth-subheading {
+    text-align: center;
+    margin-bottom: 22px;
+  }
+
+  /* Mobile Social Buttons inside Form */
+  .auth-mobile-socials {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #EFE6EC;
+  }
+
+  .demo-grid {
+    grid-template-columns: 1fr;
+  }
+}

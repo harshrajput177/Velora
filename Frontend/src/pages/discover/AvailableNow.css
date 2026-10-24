@@ -1,0 +1,57 @@
+/* =====================================================
+   VELORA AVAILABLE RIGHT NOW PAGE STYLES
+   File: Frontend/src/pages/discover/AvailableNow.css
+   ===================================================== */
+
+.avail-page-container {
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 24px 16px 80px;
+}
+
+@media (min-width: 768px) {
+  .avail-page-container {
+    padding: 32px 24px 80px;
+  }
+}
+
+.avail-header-wrap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.avail-zap-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #FF3366 0%, #E11D48 100%);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 6px 18px rgba(225, 29, 72, 0.35);
+}
+
+.avail-title {
+  font-family: 'Bricolage Grotesque', 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #140817;
+  letter-spacing: -0.5px;
+  margin: 0 0 4px;
+}
+
+@media (min-width: 768px) {
+  .avail-title {
+    font-size: 2.2rem;
+  }
+}
+
+.avail-sub {
+  color: #6B5B72;
+  font-size: 0.92rem;
+  margin: 0;
+}
