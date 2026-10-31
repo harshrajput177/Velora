@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FiCalendar, FiMapPin, FiClock, FiX, FiCheck } from "react-icons/fi";
 import confetti from "canvas-confetti";
 import { saveDate, openOrCreateConversation } from "../../utils/mockStorage";
-import "./DateRequestModal.premium.css";
+import "./DateRequestModal.css";
 
 const activities = [
   { id: "coffee", name: "☕ Coffee & Cafe", emoji: "☕", desc: "Casual cafe hangout" },
