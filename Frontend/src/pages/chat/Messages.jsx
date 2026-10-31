@@ -17,7 +17,8 @@ const Messages = () => {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { socket, onlineUsers } = useSocket();
-  const { startCall } = useCall();
+  const callContext = useCall();
+  const startCall = callContext?.startCall;
 
   const [conversations, setConversations] = useState([]);
   const [activeConvo, setActiveConvo] = useState(null);
