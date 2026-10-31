@@ -11,13 +11,9 @@ import {
   FiCheckCircle,
   FiStar,
   FiUsers,
-  FiAward,
-  FiTrendingUp,
   FiClock,
-  FiDollarSign,
   FiPhone,
-  FiMail,
-  FiLocation
+  FiMail
 } from "react-icons/fi";
 import { FaQuoteLeft } from "react-icons/fa";
 import "./home.premium.css";
