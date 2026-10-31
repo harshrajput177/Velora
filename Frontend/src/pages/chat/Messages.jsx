@@ -220,27 +220,28 @@ const Messages = () => {
             <>
               {/* Header */}
               <div className="chat-header">
+                <button
+                  type="button"
+                  className="btn-chat-back d-md-none"
+                  onClick={() => setMobileChatOpen(false)}
+                  aria-label="Back to messages"
+                >
+                  <FiArrowLeft size={18} />
+                </button>
                 <div className="chat-header-user">
-                  <button
-                    type="button"
-                    className="btn-chat-back d-md-none"
-                    onClick={() => setMobileChatOpen(false)}
-                  >
-                    <FiArrowLeft size={16} /> Back
-                  </button>
                   <img
                     src={activeConvo.partner.photos?.[0] || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100"}
-                    alt="Partner"
+                    alt={activeConvo.partner.firstName}
                     className="chat-avatar"
                   />
-                  <div>
+                  <div className="chat-user-info">
                     <h6 className="chat-user-name">{activeConvo.partner.firstName}</h6>
                     <small className="chat-user-sub">{activeConvo.partner.area || "Delhi NCR"}</small>
                   </div>
                 </div>
 
                 <div className="chat-encrypted-pill d-none d-sm-inline-flex">
-                  <FiShield size={13} className="text-success" /> SafeTrack™ Encrypted
+                  <FiShield size={12} /> SafeTrack™
                 </div>
               </div>
 
@@ -314,7 +315,7 @@ const Messages = () => {
               </form>
             </>
           ) : (
-            <div className="h-100 d-flex flex-column align-items-center justify-content-center text-muted">
+            <div className="chat-empty-state">
               <p>Select a conversation to start chatting</p>
             </div>
           )}
