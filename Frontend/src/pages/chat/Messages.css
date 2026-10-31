@@ -1,7 +1,12 @@
-/* VELORA CHAT - INSTAGRAM STYLE */
+/* VELORA CHAT - INSTAGRAM STYLE - NO PAGE SCROLL */
 
 * {
   -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
 }
 
 .messages-page-wrapper {
@@ -10,9 +15,8 @@
   padding: 0;
   height: calc(100vh - 60px);
   display: flex;
-  flex-direction: column;
   background: #FFFFFF;
-  overflow: hidden;
+  overflow: hidden !important;
 }
 
 @media (min-width: 768px) {
@@ -22,14 +26,13 @@
 }
 
 .messages-card {
-  flex-grow: 1;
-  background: #FFFFFF;
   display: flex;
-  overflow: hidden;
+  width: 100%;
   height: 100%;
+  overflow: hidden;
 }
 
-/* SIDEBAR */
+/* ===== SIDEBAR ===== */
 .messages-sidebar {
   width: 100%;
   display: flex;
@@ -159,13 +162,14 @@
   text-overflow: ellipsis;
 }
 
-/* CHAT PANE */
+/* ===== CHAT PANE - FLEX CONTAINER ===== */
 .messages-chat-pane {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  background: #FFFFFF;
+  flex: 1;
   height: 100%;
+  width: 100%;
+  background: #FFFFFF;
   overflow: hidden;
 }
 
@@ -178,16 +182,16 @@
   }
 }
 
-/* HEADER - FIXED */
+/* ===== HEADER - FIXED HEIGHT ===== */
 .chat-header {
-  padding: 12px 16px;
-  border-bottom: 1px solid #E5E7EB;
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #E5E7EB;
   background: #FFFFFF;
   flex-shrink: 0;
-  height: auto;
+  height: 60px;
 }
 
 .chat-header-user {
@@ -205,7 +209,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
+  padding: 0;
   cursor: pointer;
   border-radius: 8px;
   flex-shrink: 0;
@@ -231,6 +235,9 @@
   font-weight: 700;
   color: #111827;
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .chat-user-sub {
@@ -258,7 +265,7 @@
   }
 }
 
-/* MESSAGES - SCROLLABLE */
+/* ===== MESSAGES - SCROLLABLE ONLY ===== */
 .chat-messages-container {
   flex: 1;
   padding: 12px;
@@ -273,6 +280,9 @@
 
 .chat-messages-container::-webkit-scrollbar {
   width: 4px;
+}
+.chat-messages-container::-webkit-scrollbar-track {
+  background: transparent;
 }
 .chat-messages-container::-webkit-scrollbar-thumb {
   background: #D1D5DB;
@@ -326,15 +336,16 @@
   opacity: 0.7;
 }
 
-/* INPUT BAR - FIXED */
+/* ===== INPUT BAR - FIXED HEIGHT ===== */
 .chat-input-bar {
-  padding: 10px 12px;
-  border-top: 1px solid #E5E7EB;
-  background: #FFFFFF;
   display: flex;
   align-items: flex-end;
   gap: 6px;
+  padding: 10px 12px;
+  border-top: 1px solid #E5E7EB;
+  background: #FFFFFF;
   flex-shrink: 0;
+  min-height: 56px;
 }
 
 .btn-moment-toggle {
@@ -377,6 +388,7 @@
   justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
+  padding: 0;
 }
 
 .chat-input-text {
@@ -411,6 +423,7 @@
   justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
+  padding: 0;
 }
 
 .chat-empty-state {
