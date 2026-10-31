@@ -60,7 +60,7 @@ const PremiumHome = () => {
       desc: "Real-time location sharing"
     },
     {
-      icon: FiTrendingUp,
+      icon: FiStar,
       title: "Trust Score",
       desc: "Transparent ratings system"
     }
