@@ -1,5 +1,5 @@
 import "./CompanionProfile.css";
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   FiArrowLeft,
@@ -28,7 +28,9 @@ import {
   FiUser,
   FiLock,
   FiAlertCircle,
-  FiTarget
+  FiTarget,
+  FiEye,
+  FiSend
 } from "react-icons/fi";
 import confetti from "canvas-confetti";
 import {
@@ -36,8 +38,9 @@ import {
   addPhotoToCompanion,
   deletePhotoFromCompanion,
   addMatch,
-  openOrCreateConversation
+  openOrCreateConversation,
 } from "../../utils/mockStorage";
+import { calculateCompatibility } from "../../utils/compatibility";
 import { useAuth } from "../../context/AuthContext";
 import { useCall } from "../../context/CallContext";
 import CompanionBookingModal from "../../components/companion/CompanionBookingModal";
@@ -50,7 +53,8 @@ const CompanionProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
-  const { startCall } = useCall();
+  const callContext = useCall();
+  const startCall = callContext?.startCall;
 
   const [companion, setCompanion] = useState(null);
   const [activePhotoIdx, setActivePhotoIdx] = useState(0);
@@ -69,6 +73,12 @@ const CompanionProfile = () => {
   const [confirmBox, setConfirmBox] = useState(null);
   const [toast, setToast] = useState(null);
   const toastTimer = useRef(null);
+
+
+
+  const compat = useMemo(() => calculateCompatibility(companion), [companion]);
+
+
 
   useEffect(() => {
     const data = getCompanionById(id);
@@ -155,8 +165,6 @@ const CompanionProfile = () => {
     navigate(`/messages?convo=${convo.id}`);
   };
 
-  const handleVoiceCall = () => startCall(ownerKey, companion, "voice");
-  const handleVideoCall = () => startCall(ownerKey, companion, "video");
 
   const addPhoto = (value) => {
     const updated = addPhotoToCompanion(ownerKey, value);
@@ -465,20 +473,61 @@ const CompanionProfile = () => {
               >
                 <FiMessageCircle size={15} /> Chat
               </button>
-              <button
-                type="button"
-                className="cp-btn cp-btn-ghost"
-                onClick={requireLogin(handleVoiceCall)}
-              >
-                <FiPhone size={15} className="cp-green" /> Voice call
-              </button>
-              <button
-                type="button"
-                className="cp-btn cp-btn-ghost"
-                onClick={requireLogin(handleVideoCall)}
-              >
-                <FiVideo size={15} className="cp-rose" /> Video call
-              </button>
+     
+            </div>
+
+            {/* Compatibility Score Card */}
+            <div className="cp-compat-card">
+              <div className="cp-compat-badge-top">
+                <span className="cp-compat-score-pill">
+                  <FiHeart size={14} /> {compat.score}% Compatibility
+                </span>
+                <span className="small text-muted fw-bold" style={{ fontSize: "0.74rem" }}>
+                  Verified Chemistry
+                </span>
+              </div>
+              <p className="cp-compat-desc">{compat.highlightReason}</p>
+
+              <div className="cp-compat-meters">
+                <div className="cp-meter-row">
+                  <span>Vibe & Lifestyle</span>
+                  <div className="cp-meter-bar-track">
+                    <div className="cp-meter-bar-fill" style={{ width: `${compat.breakdown.vibeMatch}%` }} />
+                  </div>
+                  <span>{compat.breakdown.vibeMatch}%</span>
+                </div>
+
+                <div className="cp-meter-row">
+                  <span>Date Style Synergy</span>
+                  <div className="cp-meter-bar-track">
+                    <div className="cp-meter-bar-fill" style={{ width: `${compat.breakdown.dateStyle}%` }} />
+                  </div>
+                  <span>{compat.breakdown.dateStyle}%</span>
+                </div>
+
+                <div className="cp-meter-row">
+                  <span>Conversation Chemistry</span>
+                  <div className="cp-meter-bar-track">
+                    <div className="cp-meter-bar-fill" style={{ width: `${compat.breakdown.conversation}%` }} />
+                  </div>
+                  <span>{compat.breakdown.conversation}%</span>
+                </div>
+              </div>
+
+              {compat.commonInterests && compat.commonInterests.length > 0 && (
+                <div className="mt-3 pt-2.5 border-top">
+                  <small className="d-block text-muted fw-bold mb-1.5" style={{ fontSize: "0.72rem", letterSpacing: "0.4px" }}>
+                    SHARED PASSIONS:
+                  </small>
+                  <div className="d-flex flex-wrap gap-1">
+                    {compat.commonInterests.map((item, i) => (
+                      <span key={i} className="cp-tag cp-tag-outline" style={{ fontSize: "0.74rem", padding: "3px 10px" }}>
+                        ✨ {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="cp-divider" />
@@ -667,6 +716,7 @@ const CompanionProfile = () => {
           </div>
         </div>
       )}
+
 
       {/* ===== Confirm ===== */}
       {confirmBox && (
