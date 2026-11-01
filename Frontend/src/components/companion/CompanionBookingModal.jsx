@@ -14,6 +14,7 @@ import {
 } from "react-icons/fi";
 import confetti from "canvas-confetti";
 import { saveBooking, openOrCreateConversation } from "../../utils/mockStorage";
+import NearbyPlaces from "../nearby/NearbyPlaces";
 
 const OCCASIONS = [
   { id: "coffee", name: "Artisan Coffee & Conversation", defaultDuration: 2, icon: "☕" },
@@ -348,6 +349,15 @@ const CompanionBookingModal = ({ show, onHide, companion, onSuccess }) => {
                   ))}
                 </div>
               </div>
+
+              {/* Nearby Places Component */}
+              <NearbyPlaces
+                venue={venue}
+                onPlaceSelect={(place) => {
+                  // Update venue with selected place
+                  setVenue(`${place.name}, ${venue.split(",").slice(1).join(",")}`);
+                }}
+              />
 
               {/* Special Notes */}
               <div className="mb-3">
