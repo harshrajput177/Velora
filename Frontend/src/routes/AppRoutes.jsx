@@ -26,7 +26,6 @@ import AdminDashboard from "../pages/admin/AdminDashboard";
 import CompanionDashboard from "../pages/companion/CompanionDashboard";
 import CompanionProfile from "../pages/companion/CompanionProfile";
 import CallRoom from "../pages/calls/CallRoom";
-import TrustCenter from "../pages/safety/TrustCenter";
 
 import { useAuth } from "../context/AuthContext";
 
@@ -66,7 +65,6 @@ const AppRoutes = () => {
         <Route path="matches" element={<ProtectedRoute><Matches /></ProtectedRoute>} />
         <Route path="messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
         <Route path="safety" element={<ProtectedRoute><SafetyCenter /></ProtectedRoute>} />
-        <Route path="trust" element={<ProtectedRoute><TrustCenter /></ProtectedRoute>} />
         <Route path="profile" element={<ProtectedRoute><MyProfile /></ProtectedRoute>} />
         
         {/* Companion & Admin Portals */}
