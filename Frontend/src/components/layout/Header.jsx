@@ -11,8 +11,7 @@ import {
   FiLogOut,
   FiChevronDown,
   FiHeart,
-  FiCalendar,
-  FiAward
+  FiCalendar
 } from "react-icons/fi";
 import "./Header.css";
 
@@ -126,14 +125,6 @@ const Header = () => {
           >
             <FiShield size={15} className="velora-nav-icon" />
             <span>SafeTrack™</span>
-          </Link>
-
-          <Link
-            to="/trust"
-            className="velora-nav-item"
-          >
-            <FiAward size={15} className="velora-nav-icon" />
-            <span>Trust & Verified</span>
           </Link>
         </nav>
 
@@ -251,15 +242,6 @@ const Header = () => {
                       >
                         <FiShield size={16} className="popover-item-icon" />
                         <span>SafeTrack™ Hub</span>
-                      </Link>
-
-                      <Link
-                        to="/trust"
-                        className="popover-item"
-                        onClick={() => setDropdownOpen(false)}
-                      >
-                        <FiAward size={16} className="popover-item-icon" />
-                        <span>Trust & Verification</span>
                       </Link>
                     </div>
 
