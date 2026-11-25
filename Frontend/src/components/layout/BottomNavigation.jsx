@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   FiHome,
   FiCompass,
@@ -10,6 +10,14 @@ import {
 import "./BottomNavigation.css";
 
 const BottomNavigation = () => {
+  const { pathname } = useLocation();
+
+  // Automatically hide bottom navigation on messages/chat interface
+  // so that the chat composer and send button are completely unobstructed
+  if (pathname.startsWith("/messages")) {
+    return null;
+  }
+
   const navItems = [
     {
       to: "/",

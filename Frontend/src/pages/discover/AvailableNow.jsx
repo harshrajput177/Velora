@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import ProfileCard from "../../components/profile/ProfileCard";
-import DateRequestModal from "../../components/dating/DateRequestModal";
 import CompanionBookingModal from "../../components/companion/CompanionBookingModal";
 import { INITIAL_COMPANIONS } from "../../constants/initialCompanions";
 import { addMatch } from "../../utils/mockStorage";
@@ -11,7 +10,6 @@ import "./AvailableNow.css";
 
 const AvailableNow = () => {
   const [companions, setCompanions] = useState(INITIAL_COMPANIONS.filter(c => c.availableNow));
-  const [datePartner, setDatePartner] = useState(null);
   const [bookCompanion, setBookCompanion] = useState(null);
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -42,14 +40,12 @@ const AvailableNow = () => {
                 addMatch(c);
                 alert(`❤️ Liked ${c.firstName}!`);
               }}
-              onOpenDateModal={p => { if (!isAuthenticated) return navigate("/login"); setDatePartner(p); }}
               onOpenBookModal={comp => { if (!isAuthenticated) return navigate("/login"); setBookCompanion(comp); }}
             />
           </div>
         ))}
       </div>
 
-      <DateRequestModal show={!!datePartner} onHide={() => setDatePartner(null)} partner={datePartner} />
       <CompanionBookingModal show={!!bookCompanion} onHide={() => setBookCompanion(null)} companion={bookCompanion} />
     </div>
   );

@@ -11,8 +11,10 @@ import {
   FiLogOut,
   FiChevronDown,
   FiHeart,
-  FiCalendar
+  FiCalendar,
+  FiStar
 } from "react-icons/fi";
+import SubscriptionModal from "../subscription/SubscriptionModal";
 import "./Header.css";
 
 const Header = () => {
@@ -22,6 +24,7 @@ const Header = () => {
   const location = useLocation();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [showSubModal, setShowSubModal] = useState(false);
   const dropdownRef = useRef(null);
 
   const isGF = location.pathname.includes("/discover") && location.search.includes("FEMALE");
@@ -142,6 +145,17 @@ const Header = () => {
                 <span className="notification-dot" />
               </Link>
 
+              {/* VIP CONNECT PASS */}
+              <button
+                type="button"
+                onClick={() => setShowSubModal(true)}
+                className="header-icon-btn d-none d-sm-flex align-items-center justify-content-center"
+                style={{ background: "#FFF9E6", borderColor: "#FDE68A", color: "#B45309" }}
+                title="Velora VIP Connect Membership"
+              >
+                <FiStar size={17} className="text-warning fill-warning" />
+              </button>
+
               {/* SAFETRACK */}
               <Link
                 to="/safety"
@@ -226,6 +240,18 @@ const Header = () => {
                         <span>Profile Details</span>
                       </Link>
 
+                      <button
+                        type="button"
+                        className="popover-item"
+                        onClick={() => {
+                          setDropdownOpen(false);
+                          setShowSubModal(true);
+                        }}
+                      >
+                        <FiStar size={16} className="popover-item-icon text-warning fill-warning" />
+                        <span>VIP Membership Pass</span>
+                      </button>
+
                       <Link
                         to="/bookings"
                         className="popover-item"
@@ -274,6 +300,7 @@ const Header = () => {
         </div>
 
       </div>
+      <SubscriptionModal show={showSubModal} onHide={() => setShowSubModal(false)} />
     </header>
   );
 };

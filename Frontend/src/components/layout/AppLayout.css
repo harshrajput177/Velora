@@ -47,3 +47,39 @@
     padding-bottom: 0;
   }
 }
+
+/* =====================================================
+   CHAT MODE (/messages)
+   The screen is split into: header | chat area | bottom nav.
+   The page itself never scrolls; only the message list does.
+   ===================================================== */
+
+html.velora-chat-lock,
+html.velora-chat-lock body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+.velora-app-layout.is-chat {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.velora-app-layout.is-chat > .is-chat-main {
+  flex: 1 1 0%;
+  min-height: 0;
+  padding-bottom: 0;
+  overflow: hidden;
+}
+
+/* The chat fills the space the layout gives it (no calc(100vh - …) guessing) */
+.velora-app-layout.is-chat .ms-page {
+  height: 100%;
+}
+
+/* The bottom nav is hidden on chat, so safe-area padding ensures clean spacing on iPhone/Android */
+.velora-app-layout.is-chat .ms-composer {
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 8px));
+}

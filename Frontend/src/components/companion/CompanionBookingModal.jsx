@@ -1,28 +1,31 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import {
   FiX,
-  FiCheckCircle,
   FiCalendar,
   FiClock,
   FiMapPin,
   FiShield,
-  FiZap,
-  FiCreditCard,
-  FiDollarSign,
-  FiCheck
+  FiCheck,
+  FiMessageCircle,
+  FiList,
+  FiStar,
+  FiZap
 } from "react-icons/fi";
 import confetti from "canvas-confetti";
-import { saveBooking, openOrCreateConversation } from "../../utils/mockStorage";
+import { saveBooking, openOrCreateConversation, getSubscription } from "../../utils/mockStorage";
 import NearbyPlaces from "../nearby/NearbyPlaces";
+import SubscriptionModal from "../subscription/SubscriptionModal";
+import "./CompanionBookingModal.css";
 
 const OCCASIONS = [
-  { id: "coffee", name: "Artisan Coffee & Conversation", defaultDuration: 2, icon: "☕" },
-  { id: "dinner", name: "Romantic Fine Dining", defaultDuration: 2, icon: "🍷" },
-  { id: "shopping", name: "Shopping & Fashion Styling", defaultDuration: 3, icon: "🛍️" },
-  { id: "movie", name: "Movie Night & Popcorn", defaultDuration: 3, icon: "🎬" },
-  { id: "event", name: "Wedding & Corporate Plus-One", defaultDuration: 4, icon: "🎟️" },
-  { id: "travel", name: "City Tour & Day Trip", defaultDuration: 6, icon: "✈️" }
+  { id: "coffee", name: "Coffee & conversation", fullName: "Artisan Coffee & Conversation", defaultDuration: 2, icon: "☕" },
+  { id: "dinner", name: "Fine dining", fullName: "Romantic Fine Dining", defaultDuration: 2, icon: "🍷" },
+  { id: "shopping", name: "Shopping & styling", fullName: "Shopping & Fashion Styling", defaultDuration: 3, icon: "🛍️" },
+  { id: "movie", name: "Movie night", fullName: "Movie Night & Popcorn", defaultDuration: 3, icon: "🎬" },
+  { id: "event", name: "Wedding / event plus-one", fullName: "Wedding & Corporate Plus-One", defaultDuration: 4, icon: "🎟️" },
+  { id: "travel", name: "City tour & day trip", fullName: "City Tour & Day Trip", defaultDuration: 6, icon: "✈️" }
 ];
 
 const VENUE_PRESETS = [
@@ -35,6 +38,12 @@ const VENUE_PRESETS = [
   "Galleria Market, DLF Phase 4, Gurgaon"
 ];
 
+const DURATIONS = [1, 2, 3, 4, 6, 8];
+
+const formatINR = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
+
+const todayISO = () => new Date().toISOString().split("T")[0];
+
 const CompanionBookingModal = ({ show, onHide, companion, onSuccess }) => {
   const navigate = useNavigate();
 
@@ -46,58 +55,75 @@ const CompanionBookingModal = ({ show, onHide, companion, onSuccess }) => {
     return tomorrow.toISOString().split("T")[0];
   });
   const [time, setTime] = useState("19:00");
-  const [venue, setVenue] = useState(companion?.area ? `${companion.area}, ${companion.city}` : "CyberHub, DLF Phase 2, Gurgaon");
-  const [paymentMethod, setPaymentMethod] = useState("Velora Escrow Wallet");
+  const [venue, setVenue] = useState(
+    companion?.area ? `${companion.area}, ${companion.city}` : "CyberHub, DLF Phase 2, Gurgaon"
+  );
   const [notes, setNotes] = useState("");
-  const [agreedSafety, setAgreedSafety] = useState(true);
+  const [agreedSafety, setAgreedSafety] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(null);
+  const [showSubModal, setShowSubModal] = useState(false);
+  const [currentSub, setCurrentSub] = useState(getSubscription());
+
+  // Close on Escape and lock background scroll while the modal is open
+  useEffect(() => {
+    if (!show) return undefined;
+    const onKey = (e) => {
+      if (e.key === "Escape") handleClose();
+    };
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    setCurrentSub(getSubscription());
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [show]);
 
   if (!show || !companion) return null;
 
+  const photo =
+    companion.photos?.[0] ||
+    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600";
   const hourlyRate = companion.hourlyRate || 599;
   const basePrice = hourlyRate * duration;
-  const platformFee = 149; // Escrow & 18+ safety monitoring fee
-  const totalAmount = basePrice + platformFee;
+  const location = companion.area || companion.city || "Delhi NCR";
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!agreedSafety) {
-      alert("Please agree to the Safety & Public Venue guidelines to proceed.");
-      return;
-    }
+    if (!agreedSafety || submitting) return;
 
     setSubmitting(true);
 
     setTimeout(() => {
-      const selectedOccasionObj = OCCASIONS.find(o => o.id === occasion) || OCCASIONS[0];
+      const selected = OCCASIONS.find((o) => o.id === occasion) || OCCASIONS[0];
       const newBooking = {
         id: "BK-" + Math.floor(1000 + Math.random() * 9000),
         companionId: companion.userId || companion.id,
         companionName: companion.firstName,
         companionAge: companion.age,
-        companionPhoto: companion.photos?.[0] || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600",
+        companionPhoto: photo,
         companionRate: hourlyRate,
-        companionArea: companion.area || companion.city || "Delhi NCR",
+        companionArea: location,
         date,
         time,
         durationHours: duration,
-        activityName: selectedOccasionObj.name,
+        activityName: selected.fullName,
         activityId: occasion,
         venue,
         notes,
-        totalAmount,
-        paymentMethod,
+        totalAmount: basePrice, // Companion's rental rate (Paid in hand directly)
+        platformFee: 0,
+        paymentMethod: "Direct Cash/UPI in Hand",
         status: "CONFIRMED",
         createdAt: new Date().toISOString()
       };
 
-      // Save to mock database
       saveBooking(newBooking);
-      // Open / initialize chat conversation
       openOrCreateConversation(companion);
 
-      // Trigger Confetti
       try {
         confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
       } catch (err) {
@@ -107,13 +133,13 @@ const CompanionBookingModal = ({ show, onHide, companion, onSuccess }) => {
       setSubmitting(false);
       setBookingSuccess(newBooking);
       if (onSuccess) onSuccess(newBooking);
-    }, 700);
+    }, 600);
   };
 
-  const handleClose = () => {
+  function handleClose() {
     setBookingSuccess(null);
     onHide();
-  };
+  }
 
   const handleGoToBookings = () => {
     handleClose();
@@ -125,347 +151,324 @@ const CompanionBookingModal = ({ show, onHide, companion, onSuccess }) => {
     navigate(`/messages?partnerId=${companion.userId || companion.id}`);
   };
 
-  return (
-    <div
-      className="modal-backdrop-custom d-flex align-items-center justify-content-center p-3"
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: "rgba(18, 12, 14, 0.75)",
-        backdropFilter: "blur(6px)",
-        zIndex: 1060,
-        overflowY: "auto"
-      }}
-      onClick={handleClose}
-    >
-      <div
-        className="modal-dialog-custom bg-white shadow-lg overflow-hidden my-auto"
-        style={{
-          width: "100%",
-          maxWidth: "600px",
-          borderRadius: "20px",
-          position: "relative",
-          animation: "modalFadeIn 0.25s ease-out"
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="p-3 px-4 border-bottom d-flex align-items-center justify-content-between bg-white">
-          <div className="d-flex align-items-center gap-3">
-            <img
-              src={companion.photos?.[0] || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200"}
-              alt={companion.firstName}
-              style={{ width: "44px", height: "44px", borderRadius: "50%", objectFit: "cover", border: "2px solid #e11d48" }}
-            />
-            <div>
-              <h5 className="fw-bold mb-0 text-dark">
-                Rent {companion.firstName} ({companion.gender === "FEMALE" ? "Girlfriend" : "Boyfriend"})
-              </h5>
-              <div className="small text-muted d-flex align-items-center gap-1">
-                <FiMapPin size={12} className="text-danger" />
-                {companion.area || companion.city || "Delhi NCR"} • ₹{hourlyRate}/hr
+  return createPortal(
+    <>
+      <div className="bm-overlay" onClick={handleClose}>
+        <div
+          className="bm-dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="bm-title"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <header className="bm-header">
+            <img src={photo} alt={companion.firstName} className="bm-avatar" />
+            <div className="bm-header-text">
+              <h2 id="bm-title" className="bm-title">
+                {bookingSuccess ? "Rental Booking Confirmed" : `Book ${companion.firstName} for Rent`}
+              </h2>
+              <div className="bm-subtitle">
+                <FiMapPin size={13} /> {location} · {formatINR(hourlyRate)}/hr (Direct in-hand pay)
               </div>
             </div>
-          </div>
+            <button type="button" onClick={handleClose} className="bm-close" aria-label="Close">
+              <FiX size={18} />
+            </button>
+          </header>
 
-          <button
-            type="button"
-            onClick={handleClose}
-            className="btn btn-light rounded-circle shadow-sm"
-            style={{ width: "36px", height: "36px", display: "flex", alignItems: "center", justifyContent: "center" }}
-            aria-label="Close"
-          >
-            <FiX size={18} />
-          </button>
-        </div>
+          {bookingSuccess ? (
+            /* ---------- Success view ---------- */
+            <div className="bm-success">
+              <div className="bm-success-icon">
+                <FiCheck size={34} />
+              </div>
+              <h3>Rental Booking Confirmed! 🎉</h3>
+              <p>
+                Your meetup with <strong>{companion.firstName}</strong> is scheduled. Velora has connected you directly. Please pay <strong>{formatINR(bookingSuccess.totalAmount)}</strong> directly to {companion.firstName} in hand (Cash or UPI) when you meet at the venue.
+              </p>
 
-        {bookingSuccess ? (
-          /* SUCCESS CONFIRMATION VIEW */
-          <div className="p-4 p-sm-5 text-center">
-            <div
-              className="badge bg-success rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center shadow"
-              style={{ width: "64px", height: "64px" }}
-            >
-              <FiCheck size={36} className="text-white" />
+              <dl className="bm-receipt">
+                <div>
+                  <dt>Booking ID</dt>
+                  <dd className="bm-mono">{bookingSuccess.id}</dd>
+                </div>
+                <div>
+                  <dt>Companion</dt>
+                  <dd>{companion.firstName} ({location})</dd>
+                </div>
+                <div>
+                  <dt>Experience</dt>
+                  <dd>{bookingSuccess.activityName}</dd>
+                </div>
+                <div>
+                  <dt>Date &amp; time</dt>
+                  <dd>
+                    {bookingSuccess.date} at {bookingSuccess.time}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Duration</dt>
+                  <dd>{bookingSuccess.durationHours} hours</dd>
+                </div>
+                <div>
+                  <dt>Meeting Venue</dt>
+                  <dd>{bookingSuccess.venue}</dd>
+                </div>
+                <div>
+                  <dt>Platform Booking Fee</dt>
+                  <dd className="text-success">₹0 (Free with Membership)</dd>
+                </div>
+                <div className="bm-receipt-total">
+                  <dt>Rental to pay in hand</dt>
+                  <dd>{formatINR(bookingSuccess.totalAmount)}</dd>
+                </div>
+                <div className="bm-receipt-payment-note">
+                  <dt>Payment Mode</dt>
+                  <dd>🤝 Hand-to-hand Cash or UPI to {companion.firstName}</dd>
+                </div>
+              </dl>
+
+              <div className="bm-success-actions">
+                <button type="button" onClick={handleGoToChat} className="bm-btn bm-btn-outline">
+                  <FiMessageCircle size={15} /> Chat with {companion.firstName}
+                </button>
+                <button type="button" onClick={handleGoToBookings} className="bm-btn bm-btn-primary">
+                  <FiList size={15} /> View my bookings
+                </button>
+              </div>
             </div>
+          ) : (
+            /* ---------- Booking form ---------- */
+            <form onSubmit={handleSubmit} className="bm-form">
+              <div className="bm-body">
+                {/* Active Membership Badge */}
+                <div className="bm-membership-bar">
+                  <div className="bm-membership-left">
+                    <FiStar size={14} className="text-warning fill-warning" />
+                    <span>
+                      <strong>{currentSub?.planName || "Velora VIP Connect Pass"}</strong> Active
+                    </span>
+                    <span className="bm-zero-comm-pill">₹0 Booking Fees</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowSubModal(true)}
+                    className="bm-membership-btn"
+                  >
+                    View Plans
+                  </button>
+                </div>
 
-            <h3 className="fw-bold mb-1 text-dark">Booking Confirmed! 🎉</h3>
-            <p className="text-muted small mb-4">
-              Your rental date with <strong>{companion.firstName}</strong> is locked in with Velora Escrow Protection.
-            </p>
-
-            <div className="card p-3 bg-light border-0 text-start rounded-4 mb-4">
-              <div className="d-flex justify-content-between mb-2">
-                <span className="text-muted small">Booking Reference:</span>
-                <span className="fw-bold font-monospace text-danger">{bookingSuccess.id}</span>
-              </div>
-              <div className="d-flex justify-content-between mb-2">
-                <span className="text-muted small">Date & Time:</span>
-                <span className="fw-bold text-dark">{bookingSuccess.date} @ {bookingSuccess.time}</span>
-              </div>
-              <div className="d-flex justify-content-between mb-2">
-                <span className="text-muted small">Duration:</span>
-                <span className="fw-bold text-dark">{bookingSuccess.durationHours} Hours</span>
-              </div>
-              <div className="d-flex justify-content-between mb-2">
-                <span className="text-muted small">Venue:</span>
-                <span className="fw-semibold text-truncate ms-2" style={{ maxWidth: "250px" }}>{bookingSuccess.venue}</span>
-              </div>
-              <div className="d-flex justify-content-between pt-2 border-top">
-                <span className="fw-bold text-dark">Total Paid (Escrow):</span>
-                <span className="fw-bold text-success">₹{bookingSuccess.totalAmount}</span>
-              </div>
-            </div>
-
-            <div className="d-flex flex-column flex-sm-row gap-2">
-              <button
-                type="button"
-                onClick={handleGoToChat}
-                className="btn btn-outline-danger rounded-pill flex-grow-1 py-2 fw-semibold"
-              >
-                💬 Chat with {companion.firstName}
-              </button>
-              <button
-                type="button"
-                onClick={handleGoToBookings}
-                className="btn btn-primary-custom rounded-pill flex-grow-1 py-2 fw-semibold text-white"
-                style={{ background: "#e11d48" }}
-              >
-                📋 View My Bookings
-              </button>
-            </div>
-          </div>
-        ) : (
-          /* BOOKING FORM */
-          <form onSubmit={handleSubmit}>
-            <div className="p-4" style={{ maxHeight: "calc(80vh - 140px)", overflowY: "auto" }}>
-              {/* Select Occasion */}
-              <div className="mb-4">
-                <label className="fw-bold small text-dark mb-2 d-block">
-                  1. Select Experience / Occasion
-                </label>
-                <div className="row g-2">
-                  {OCCASIONS.map(occ => (
-                    <div key={occ.id} className="col-6 col-sm-4">
-                      <div
+                {/* Experience */}
+                <section className="bm-section">
+                  <h3 className="bm-section-title">1. Choose an experience</h3>
+                  <div className="bm-occasions" role="group" aria-label="Experience">
+                    {OCCASIONS.map((occ) => (
+                      <button
+                        key={occ.id}
+                        type="button"
+                        aria-pressed={occasion === occ.id}
                         onClick={() => {
                           setOccasion(occ.id);
                           setDuration(occ.defaultDuration);
                         }}
-                        className={`p-2.5 rounded-3 border text-center cursor-pointer transition-all ${
-                          occasion === occ.id
-                            ? "border-danger bg-light text-danger fw-bold shadow-sm"
-                            : "bg-white text-secondary"
-                        }`}
-                        style={{ cursor: "pointer", fontSize: "0.82rem" }}
+                        className={`bm-occasion ${occasion === occ.id ? "is-selected" : ""}`}
                       >
-                        <div style={{ fontSize: "1.4rem" }}>{occ.icon}</div>
-                        <div className="text-truncate mt-1">{occ.name}</div>
-                      </div>
+                        <span className="bm-occasion-icon">{occ.icon}</span>
+                        <span className="bm-occasion-name">{occ.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+
+                {/* When */}
+                <section className="bm-section">
+                  <h3 className="bm-section-title">2. Date &amp; Duration</h3>
+                  <div className="bm-grid-2">
+                    <label className="bm-field">
+                      <span className="bm-label">
+                        <FiCalendar size={13} /> Date
+                      </span>
+                      <input
+                        type="date"
+                        required
+                        min={todayISO()}
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
+                        className="bm-input"
+                      />
+                    </label>
+                    <label className="bm-field">
+                      <span className="bm-label">
+                        <FiClock size={13} /> Start time
+                      </span>
+                      <input
+                        type="time"
+                        required
+                        value={time}
+                        onChange={(e) => setTime(e.target.value)}
+                        className="bm-input"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="bm-field">
+                    <span className="bm-label">Duration</span>
+                    <div className="bm-durations" role="group" aria-label="Duration in hours">
+                      {DURATIONS.map((hrs) => (
+                        <button
+                          key={hrs}
+                          type="button"
+                          aria-pressed={duration === hrs}
+                          onClick={() => setDuration(hrs)}
+                          className={`bm-chip ${duration === hrs ? "is-selected" : ""}`}
+                        >
+                          {hrs} hr{hrs > 1 ? "s" : ""}
+                        </button>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </div>
+                  </div>
+                </section>
 
-              {/* Date & Time */}
-              <div className="row g-2 mb-3">
-                <div className="col-6">
-                  <label className="fw-bold small text-dark mb-1 d-flex align-items-center gap-1">
-                    <FiCalendar size={13} className="text-danger" /> Date
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    className="form-control rounded-3"
-                    style={{ fontSize: "0.9rem" }}
-                  />
-                </div>
-                <div className="col-6">
-                  <label className="fw-bold small text-dark mb-1 d-flex align-items-center gap-1">
-                    <FiClock size={13} className="text-danger" /> Start Time
-                  </label>
-                  <input
-                    type="time"
-                    required
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
-                    className="form-control rounded-3"
-                    style={{ fontSize: "0.9rem" }}
-                  />
-                </div>
-              </div>
-
-              {/* Duration Pills */}
-              <div className="mb-3">
-                <label className="fw-bold small text-dark mb-1 d-block">
-                  Duration (Hours)
-                </label>
-                <div className="d-flex gap-2">
-                  {[1, 2, 3, 4, 6, 8].map(hrs => (
-                    <button
-                      key={hrs}
-                      type="button"
-                      onClick={() => setDuration(hrs)}
-                      className={`btn btn-sm flex-grow-1 rounded-pill ${
-                        duration === hrs ? "btn-danger fw-bold shadow-sm" : "btn-outline-secondary"
-                      }`}
-                      style={{ fontSize: "0.82rem" }}
-                    >
-                      {hrs} hr{hrs > 1 ? "s" : ""}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Venue Selector */}
-              <div className="mb-3">
-                <label className="fw-bold small text-dark mb-1 d-flex align-items-center gap-1">
-                  <FiMapPin size={13} className="text-danger" /> Public Meeting Venue
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. CyberHub, DLF Phase 2, Gurgaon"
-                  value={venue}
-                  onChange={(e) => setVenue(e.target.value)}
-                  className="form-control rounded-3 mb-2"
-                  style={{ fontSize: "0.9rem" }}
-                />
-                <div className="d-flex flex-wrap gap-1">
-                  {VENUE_PRESETS.slice(0, 4).map((p, idx) => (
-                    <span
-                      key={idx}
-                      onClick={() => setVenue(p)}
-                      className="badge bg-light text-muted border rounded-pill px-2 py-1 cursor-pointer"
-                      style={{ cursor: "pointer", fontSize: "0.72rem" }}
-                    >
-                      📍 {p.split(",")[0]}
+                {/* Where */}
+                <section className="bm-section">
+                  <h3 className="bm-section-title">3. Public Meeting Venue</h3>
+                  <label className="bm-field">
+                    <span className="bm-label">
+                      <FiMapPin size={13} /> Meeting venue in Delhi NCR
                     </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Nearby Places Component */}
-              <NearbyPlaces
-                venue={venue}
-                onPlaceSelect={(place) => {
-                  // Update venue with selected place
-                  setVenue(`${place.name}, ${venue.split(",").slice(1).join(",")}`);
-                }}
-              />
-
-              {/* Special Notes */}
-              <div className="mb-3">
-                <label className="fw-bold small text-dark mb-1 d-block">
-                  Special Notes / Dress Code / Preferences
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="e.g., Casual cafe meeting, table booked under Kabir."
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  className="form-control rounded-3"
-                  style={{ fontSize: "0.85rem" }}
-                />
-              </div>
-
-              {/* Payment Method */}
-              <div className="mb-3">
-                <label className="fw-bold small text-dark mb-1 d-flex align-items-center gap-1">
-                  <FiCreditCard size={13} className="text-danger" /> Payment Method
-                </label>
-                <div className="row g-2">
-                  {[
-                    { id: "Velora Escrow Wallet", label: "Velora Wallet (₹8,500)" },
-                    { id: "UPI Instant", label: "UPI / GPay / PhonePe" },
-                    { id: "Credit/Debit Card", label: "Credit / Debit Card" },
-                    { id: "Cash on Meet", label: "Cash on Meet (Verified)" }
-                  ].map(pm => (
-                    <div key={pm.id} className="col-6">
-                      <div
-                        onClick={() => setPaymentMethod(pm.id)}
-                        className={`p-2 rounded-3 border cursor-pointer ${
-                          paymentMethod === pm.id
-                            ? "border-danger bg-light text-danger fw-semibold"
-                            : "bg-white text-muted"
-                        }`}
-                        style={{ cursor: "pointer", fontSize: "0.78rem" }}
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. CyberHub, DLF Phase 2, Gurgaon"
+                      value={venue}
+                      onChange={(e) => setVenue(e.target.value)}
+                      className="bm-input"
+                    />
+                  </label>
+                  <div className="bm-presets" aria-label="Popular venues">
+                    {VENUE_PRESETS.slice(0, 4).map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setVenue(p)}
+                        className={`bm-chip bm-chip-small ${venue === p ? "is-selected" : ""}`}
                       >
-                        ✓ {pm.label}
+                        {p.split(",")[0]}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* OpenStreetMap Nearby Places Component */}
+                  <div className="bm-nearby">
+                    <NearbyPlaces
+                      venue={venue}
+                      companion={companion}
+                      selectedPlaceName={venue}
+                      onPlaceSelect={(place) => {
+                        const areaPart = venue.includes(",")
+                          ? venue.split(",").slice(1).join(",").trim()
+                          : venue;
+                        setVenue(`${place.name}, ${areaPart}`);
+                      }}
+                    />
+                  </div>
+
+                  <label className="bm-field">
+                    <span className="bm-label">Notes for {companion.firstName} (optional)</span>
+                    <textarea
+                      rows={2}
+                      placeholder="Dress code, table booking name, or preferences for the date"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      className="bm-input bm-textarea"
+                    />
+                  </label>
+                </section>
+
+                {/* Direct In-Hand Rental Rate Summary (No app payment) */}
+                <section className="bm-section">
+                  <h3 className="bm-section-title">4. Rental Rate &amp; In-Hand Payment Terms</h3>
+                  <div className="bm-rate-summary">
+                    <div className="bm-rate-row">
+                      <span>Companion Rental Rate ({formatINR(hourlyRate)} × {duration} hrs)</span>
+                      <strong>{formatINR(basePrice)}</strong>
+                    </div>
+                    <div className="bm-rate-row">
+                      <span>Velora Platform Commission</span>
+                      <span className="bm-free-tag">₹0 (Free with Connect Pass)</span>
+                    </div>
+                    <div className="bm-rate-row bm-rate-app-charge">
+                      <span>Amount charged on App today</span>
+                      <span className="bm-zero-due">₹0 (No online payment)</span>
+                    </div>
+
+                    <div className="bm-hand-payment-card">
+                      <div className="bm-hand-payment-header">
+                        <span className="bm-hand-icon">🤝</span>
+                        <div>
+                          <strong>Pay directly in hand at meetup</strong>
+                          <p>
+                            Velora connects you both directly. You will pay <strong>{formatINR(basePrice)}</strong> directly in cash or UPI to <strong>{companion.firstName}</strong> when you meet at the public venue.
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
+                  </div>
+                </section>
 
-              {/* Itemized Price Calculation */}
-              <div className="card p-3 bg-light border-0 rounded-4 mb-3">
-                <div className="d-flex justify-content-between small text-muted mb-1">
-                  <span>Rental Rate (₹{hourlyRate} × {duration} hrs):</span>
-                  <span className="fw-semibold text-dark">₹{basePrice}</span>
-                </div>
-                <div className="d-flex justify-content-between small text-muted mb-2">
-                  <span>SafeTrack & Escrow Verification Fee:</span>
-                  <span className="fw-semibold text-dark">₹{platformFee}</span>
-                </div>
-                <div className="d-flex justify-content-between fw-bold pt-2 border-top text-dark">
-                  <span>Total Escrow Amount:</span>
-                  <span className="text-danger h5 mb-0">₹{totalAmount}</span>
-                </div>
-              </div>
-
-              {/* Safety Checkbox */}
-              <div className="form-check small text-muted">
-                <input
-                  type="checkbox"
-                  id="safetyCheck"
-                  checked={agreedSafety}
-                  onChange={(e) => setAgreedSafety(e.target.checked)}
-                  className="form-check-input"
-                  required
-                />
-                <label htmlFor="safetyCheck" className="form-check-label" style={{ fontSize: "0.78rem" }}>
-                  I agree to Velora's strict 18+ Platonic Companionship policy & public-venue safety requirements.
+                {/* Safety Consent */}
+                <label className="bm-consent">
+                  <input
+                    type="checkbox"
+                    checked={agreedSafety}
+                    onChange={(e) => setAgreedSafety(e.target.checked)}
+                  />
+                  <span>
+                    <FiShield size={14} /> I agree to Velora’s 18+ platonic companionship policy, meeting strictly at verified public venues, and paying {companion.firstName} {formatINR(basePrice)} directly in hand.
+                  </span>
                 </label>
               </div>
-            </div>
 
-            {/* Footer */}
-            <div className="p-3 border-top bg-light d-flex align-items-center justify-content-between">
-              <div>
-                <span className="small text-muted d-block" style={{ fontSize: "0.75rem" }}>Total to Pay</span>
-                <span className="h5 fw-bold text-danger mb-0">₹{totalAmount}</span>
-              </div>
-
-              <div className="d-flex gap-2">
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  className="btn btn-outline-secondary rounded-pill px-3"
-                  style={{ fontSize: "0.88rem" }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="btn btn-primary-custom px-4 rounded-pill d-flex align-items-center gap-1 shadow"
-                  style={{ background: "#e11d48", color: "#FFF", fontWeight: 600, fontSize: "0.88rem" }}
-                >
-                  <FiZap size={16} />
-                  {submitting ? "Processing..." : `Confirm & Rent ₹${totalAmount}`}
-                </button>
-              </div>
-            </div>
-          </form>
-        )}
+              {/* Footer */}
+              <footer className="bm-footer">
+                <div className="bm-footer-total">
+                  <span>Direct in-hand rental</span>
+                  <strong>{formatINR(basePrice)}</strong>
+                  <small className="bm-pay-hint">Pay {companion.firstName} in person (₹0 on app)</small>
+                </div>
+                <div className="bm-footer-actions">
+                  <button type="button" onClick={handleClose} className="bm-btn bm-btn-outline">
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={!agreedSafety || submitting}
+                    className="bm-btn bm-btn-primary"
+                    title={!agreedSafety ? "Accept the terms & safety policy to continue" : undefined}
+                  >
+                    <FiCheck size={16} />
+                    {submitting ? "Booking Rental…" : "Confirm & Book for Rent"}
+                  </button>
+                </div>
+              </footer>
+            </form>
+          )}
+        </div>
       </div>
-    </div>
+
+      {/* Subscription / Membership Modal */}
+      <SubscriptionModal
+        show={showSubModal}
+        onHide={() => setShowSubModal(false)}
+        onSubscribed={(sub) => {
+          setCurrentSub(sub);
+          setShowSubModal(false);
+        }}
+      />
+    </>,
+    document.body
   );
 };
 

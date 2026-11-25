@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FiCalendar, FiMapPin, FiClock, FiCheck, FiX, FiRefreshCw, FiPlus } from "react-icons/fi";
+import { FiCalendar, FiMapPin, FiClock, FiCheck, FiX, FiRefreshCw } from "react-icons/fi";
 import { getDates, updateDateStatus } from "../../utils/mockStorage";
 import "./Dates.css";
 
@@ -25,18 +25,15 @@ const Dates = () => {
     <div className="dates-page-container">
       <div className="dates-header-wrap">
         <div>
-          <h2 className="dates-title">Pick a Plan Date Outings</h2>
-          <p className="dates-sub">Curated romantic & social dates in NCR</p>
+          <h2 className="dates-title">Bookings & Confirmed Dates</h2>
+          <p className="dates-sub">Your upcoming meetups in NCR</p>
         </div>
-        <Link to="/discover?mode=dates" className="btn-plan-new">
-          <FiPlus size={15} /> Pick New Plan
-        </Link>
       </div>
 
       {dates.length === 0 ? (
         <div className="card p-5 text-center border-0 shadow-sm rounded-4 bg-white">
-          <h5 className="fw-bold mb-2">No date invitations yet.</h5>
-          <p className="text-muted small mb-3">Explore companions and click "Pick a Plan" to create one.</p>
+          <h5 className="fw-bold mb-2">No bookings yet.</h5>
+          <p className="text-muted small mb-3">Explore companions and click "Book Now" to create a booking.</p>
           <div>
             <Link to="/discover" className="btn-plan-new" style={{ margin: "0 auto" }}>
               Discover Companions

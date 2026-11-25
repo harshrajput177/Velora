@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   FiCalendar,
@@ -8,33 +8,84 @@ import {
   FiShield,
   FiCheckCircle,
   FiPlus,
-  FiRefreshCw
+  FiRefreshCw,
+  FiX,
+  FiAlertTriangle,
+  FiStar
 } from "react-icons/fi";
 import { getBookings, cancelBooking } from "../../utils/mockStorage";
 import { useSafety } from "../../context/SafetyContext";
+import RateMeetupModal from "../../components/reviews/RateMeetupModal";
 import "./MyBookings.css";
+
+const TABS = [
+  { id: "ALL", label: "All" },
+  { id: "CONFIRMED", label: "Upcoming" },
+  { id: "COMPLETED", label: "Completed" },
+  { id: "CANCELLED", label: "Cancelled" }
+];
+
+const STATUS_LABEL = {
+  CONFIRMED: "Confirmed",
+  COMPLETED: "Completed",
+  CANCELLED: "Cancelled"
+};
+
+const formatINR = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
+
+const getDateParts = (value) => {
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return null;
+  return {
+    day: d.getDate(),
+    month: d.toLocaleString("en-IN", { month: "short" }),
+    weekday: d.toLocaleString("en-IN", { weekday: "short" })
+  };
+};
 
 const MyBookings = () => {
   const navigate = useNavigate();
   const { startSession } = useSafety();
 
   const [bookings, setBookings] = useState([]);
-  const [filter, setFilter] = useState("ALL"); // ALL, CONFIRMED, COMPLETED, CANCELLED
+  const [filter, setFilter] = useState("ALL");
+  const [cancelTarget, setCancelTarget] = useState(null);
+  const [ratingTarget, setRatingTarget] = useState(null);
+  const [toast, setToast] = useState("");
 
-  const loadBookings = () => {
-    setBookings(getBookings());
-  };
+  const loadBookings = () => setBookings(getBookings());
 
   useEffect(() => {
     loadBookings();
   }, []);
 
-  const handleCancel = (bookingId) => {
-    if (window.confirm("Are you sure you want to cancel this booking? Funds in Escrow will be immediately refunded to your Velora Wallet.")) {
-      const updated = cancelBooking(bookingId);
-      setBookings(updated);
-      alert("Booking cancelled and ₹ refunded to your Velora Wallet.");
-    }
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(""), 3500);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  const counts = useMemo(() => {
+    const c = { ALL: bookings.length, CONFIRMED: 0, COMPLETED: 0, CANCELLED: 0 };
+    bookings.forEach((b) => {
+      if (c[b.status] !== undefined) c[b.status] += 1;
+    });
+    return c;
+  }, [bookings]);
+
+  const escrowHeld = useMemo(
+    () =>
+      bookings
+        .filter((b) => b.status === "CONFIRMED")
+        .reduce((sum, b) => sum + Number(b.totalAmount || 0), 0),
+    [bookings]
+  );
+
+  const confirmCancel = () => {
+    const updated = cancelBooking(cancelTarget.id);
+    setBookings(updated);
+    setCancelTarget(null);
+    setToast("Rental booking cancelled successfully.");
   };
 
   const handleStartSafeTrack = async (booking) => {
@@ -43,192 +94,262 @@ const MyBookings = () => {
         destination: booking.venue,
         durationMinutes: (booking.durationHours || 2) * 60
       });
-      navigate("/safety");
     } catch (err) {
-      alert("SafeTrack started! Redirecting to Safety Center.");
-      navigate("/safety");
+      // continue to Safety Center even if the session could not start automatically
     }
+    navigate("/safety");
   };
 
-  const filtered = bookings.filter(b => {
-    if (filter === "ALL") return true;
-    return b.status === filter;
-  });
+  const filtered = bookings.filter((b) => filter === "ALL" || b.status === filter);
 
   return (
-    <div className="bookings-container">
+    <div className="mb-page">
       {/* Header */}
-      <div className="bookings-header-wrap">
+      <header className="mb-header">
         <div>
-          <h2 className="bookings-title">My Companion Bookings</h2>
-          <p className="bookings-sub">
-            Manage your companion rental dates, escrow payments, and live SafeTrack.
+          <h1 className="mb-title">My bookings</h1>
+          <p className="mb-sub">
+            Track your upcoming companion outings, scheduled meetups and SafeTrack™ safety in one place.
           </p>
         </div>
-
-        <div className="bookings-actions">
-          <button
-            type="button"
-            onClick={loadBookings}
-            className="btn btn-outline-secondary btn-sm rounded-pill d-flex align-items-center gap-1"
-            title="Refresh"
-          >
-            <FiRefreshCw size={13} /> Refresh
+        <div className="mb-header-actions">
+          <button type="button" onClick={loadBookings} className="mb-btn mb-btn-ghost">
+            <FiRefreshCw size={14} /> Refresh
           </button>
-          <Link to="/discover" className="btn-book-new">
-            <FiPlus size={15} /> Book Companion
+          <Link to="/discover" className="mb-btn mb-btn-primary">
+            <FiPlus size={16} /> Book a companion
           </Link>
         </div>
-      </div>
+      </header>
 
-      {/* Filter Tabs */}
-      <div className="bookings-filter-bar">
-        {[
-          { id: "ALL", label: `All Bookings (${bookings.length})` },
-          { id: "CONFIRMED", label: "Upcoming / Confirmed" },
-          { id: "COMPLETED", label: "Completed" },
-          { id: "CANCELLED", label: "Cancelled" }
-        ].map(tab => (
+      {/* Summary */}
+      <section className="mb-stats" aria-label="Booking summary">
+        <div className="mb-stat">
+          <span className="mb-stat-label">Upcoming</span>
+          <span className="mb-stat-value">{counts.CONFIRMED}</span>
+        </div>
+        <div className="mb-stat">
+          <span className="mb-stat-label">Completed</span>
+          <span className="mb-stat-value">{counts.COMPLETED}</span>
+        </div>
+        <div className="mb-stat mb-stat-accent">
+          <span className="mb-stat-label">Estimated Rental</span>
+          <span className="mb-stat-value">{formatINR(escrowHeld)}</span>
+          <span className="mb-stat-note">Pay in hand directly to companion</span>
+        </div>
+      </section>
+
+      {/* Tabs */}
+      <nav className="mb-tabs" role="tablist" aria-label="Filter bookings">
+        {TABS.map((tab) => (
           <button
             key={tab.id}
             type="button"
+            role="tab"
+            aria-selected={filter === tab.id}
             onClick={() => setFilter(tab.id)}
-            className={`booking-tab-pill ${filter === tab.id ? "is-active" : ""}`}
+            className={`mb-tab ${filter === tab.id ? "is-active" : ""}`}
           >
             {tab.label}
+            <span className="mb-tab-count">{counts[tab.id]}</span>
           </button>
         ))}
-      </div>
+      </nav>
 
-      {/* Bookings List */}
+      {/* List */}
       {filtered.length === 0 ? (
-        <div className="card p-5 text-center border-0 shadow-sm rounded-4 bg-white">
-          <div
-            className="badge rounded-circle p-3 mx-auto mb-3 d-flex align-items-center justify-content-center"
-            style={{ width: "64px", height: "64px", background: "#FFF1F4", color: "#E11D48" }}
-          >
+        <div className="mb-empty">
+          <div className="mb-empty-icon">
             <FiCalendar size={28} />
           </div>
-          <h4 className="fw-bold mb-2">No bookings found</h4>
-          <p className="text-muted small mb-4" style={{ maxWidth: "420px", margin: "0 auto" }}>
+          <h3>{filter === "ALL" ? "No bookings yet" : `No ${STATUS_LABEL[filter].toLowerCase()} bookings`}</h3>
+          <p>
             {filter === "ALL"
-              ? "You haven't rented any companion yet. Browse verified companions in Delhi NCR and plan your first outing!"
-              : `No bookings matching "${filter}" status.`}
+              ? "Browse verified companions in Delhi NCR and plan your first outing."
+              : "Bookings with this status will show up here."}
           </p>
-          <div>
-            <Link to="/discover" className="btn-book-new" style={{ margin: "0 auto" }}>
-              Explore Available Companions
-            </Link>
-          </div>
+          <Link to="/discover" className="mb-btn mb-btn-primary">
+            Find a companion
+          </Link>
         </div>
       ) : (
-        <div className="row g-3">
-          {filtered.map(b => (
-            <div key={b.id} className="col-12">
-              <div className="booking-card">
-                <div className="d-flex flex-column flex-md-row justify-content-between gap-3">
-                  {/* Left: Companion & Date Info */}
-                  <div className="d-flex gap-3">
-                    <img
-                      src={b.companionPhoto}
-                      alt={b.companionName}
-                      className="booking-partner-avatar"
-                    />
+        <ul className="mb-list">
+          {filtered.map((b) => {
+            const parts = getDateParts(b.date);
+            const status = (b.status || "").toLowerCase();
+            return (
+              <li key={b.id} className={`mb-card is-${status}`}>
+                {/* Date block */}
+                <div className="mb-date" aria-hidden="true">
+                  {parts ? (
+                    <>
+                      <span className="mb-date-month">{parts.month}</span>
+                      <span className="mb-date-day">{parts.day}</span>
+                      <span className="mb-date-week">{parts.weekday}</span>
+                    </>
+                  ) : (
+                    <FiCalendar size={22} />
+                  )}
+                </div>
 
-                    <div>
-                      <div className="d-flex flex-wrap align-items-center gap-2 mb-1">
-                        <span className="booking-partner-name">
-                          {b.companionName}
-                        </span>
-                        <span className="badge rounded-pill bg-light text-danger border" style={{ fontSize: "0.72rem" }}>
-                          Ref: {b.id}
-                        </span>
-                        <span
-                          className={`booking-status-badge ${
-                            b.status === "CONFIRMED"
-                              ? "booking-status-confirmed"
-                              : b.status === "CANCELLED"
-                              ? "booking-status-cancelled"
-                              : "booking-status-completed"
-                          }`}
-                        >
-                          {b.status}
+                {/* Main info */}
+                <div className="mb-main">
+                  <div className="mb-person">
+                    <img src={b.companionPhoto} alt={b.companionName} className="mb-avatar" />
+                    <div className="mb-person-text">
+                      <div className="mb-name-row">
+                        <span className="mb-name">{b.companionName}</span>
+                        <span className={`mb-status mb-status-${status}`}>
+                          {STATUS_LABEL[b.status] || b.status}
                         </span>
                       </div>
-
-                      <div className="fw-semibold text-danger small mb-2">
-                        🎯 {b.activityName || "Social Outing"}
-                      </div>
-
-                      <div className="d-flex flex-wrap gap-3 small text-muted">
-                        <span className="d-flex align-items-center gap-1">
-                          <FiCalendar size={13} className="text-danger" />
-                          {b.date}
-                        </span>
-                        <span className="d-flex align-items-center gap-1">
-                          <FiClock size={13} className="text-danger" />
-                          {b.time} ({b.durationHours || 2} hrs)
-                        </span>
-                        <span className="d-flex align-items-center gap-1">
-                          <FiMapPin size={13} className="text-danger" />
-                          {b.venue}
-                        </span>
-                      </div>
-
-                      {b.notes && (
-                        <p className="small text-muted mb-0 mt-2 fst-italic">
-                          Note: "{b.notes}"
-                        </p>
-                      )}
+                      <div className="mb-activity">{b.activityName || "Social outing"}</div>
                     </div>
                   </div>
 
-                  {/* Right: Payment & Action Buttons */}
-                  <div className="d-flex flex-column justify-content-between align-items-md-end border-top border-md-top-0 pt-3 pt-md-0">
-                    <div className="text-md-end mb-3">
-                      <div className="small text-muted">Escrow Amount</div>
-                      <div className="h4 fw-bold text-dark mb-0">₹{b.totalAmount}</div>
-                      <span className="booking-escrow-pill">
-                        <FiCheckCircle size={13} /> {b.paymentMethod || "Escrow Protected"}
-                      </span>
-                    </div>
+                  <div className="mb-meta">
+                    <span>
+                      <FiCalendar size={14} /> {b.date}
+                    </span>
+                    <span>
+                      <FiClock size={14} /> {b.time} · {b.durationHours || 2} hrs
+                    </span>
+                    <span>
+                      <FiMapPin size={14} /> {b.venue}
+                    </span>
+                  </div>
 
-                    <div className="d-flex flex-wrap gap-2">
+                  {b.notes && <p className="mb-note">Your note: “{b.notes}”</p>}
+                  <div className="mb-ref">Booking ID: {b.id}</div>
+                </div>
+
+                {/* Payment + actions */}
+                <div className="mb-side">
+                  <div className="mb-amount">
+                    <span className="mb-amount-label">
+                      {b.status === "CANCELLED" ? "Cancelled" : "Rental (In-Hand)"}
+                    </span>
+                    <span className="mb-amount-value">{formatINR(b.totalAmount)}</span>
+                    <span className="mb-escrow">
+                      <FiCheckCircle size={13} /> {b.paymentMethod || "Direct Pay in Hand"}
+                    </span>
+                  </div>
+
+                  <div className="mb-actions">
+                    {b.status === "CONFIRMED" && (
+                      <button
+                        type="button"
+                        onClick={() => handleStartSafeTrack(b)}
+                        className="mb-btn mb-btn-primary mb-btn-block"
+                        title="Start live GPS safety monitoring for this outing"
+                      >
+                        <FiShield size={15} /> Start SafeTrack
+                      </button>
+                    )}
+                    {b.status === "COMPLETED" && (
+                      b.isRated ? (
+                        <div className="mb-rated-pill">
+                          <FiStar size={13} className="text-warning fill-warning" />
+                          <span>Outing Rated {b.userRating ? `${b.userRating}.0` : "5.0"} ★</span>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setRatingTarget(b)}
+                          className="mb-btn mb-btn-rate mb-btn-block"
+                          title="Rate your friend after meetup"
+                        >
+                          <FiStar size={14} /> Rate Outing
+                        </button>
+                      )
+                    )}
+                    <div className="mb-actions-row">
                       <button
                         type="button"
                         onClick={() => navigate(`/messages?partnerId=${b.companionId}`)}
-                        className="btn btn-sm btn-outline-danger rounded-pill px-3 d-flex align-items-center gap-1"
+                        className="mb-btn mb-btn-outline"
                       >
                         <FiMessageCircle size={14} /> Chat
                       </button>
-
                       {b.status === "CONFIRMED" && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => handleStartSafeTrack(b)}
-                            className="btn btn-sm btn-danger rounded-pill px-3 d-flex align-items-center gap-1 text-white shadow-sm"
-                            title="Start live GPS safety monitor for this outing"
-                          >
-                            <FiShield size={14} /> Start SafeTrack™
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleCancel(b.id)}
-                            className="btn btn-sm btn-light text-muted rounded-pill px-2.5"
-                            title="Cancel booking"
-                          >
-                            Cancel
-                          </button>
-                        </>
+                        <button
+                          type="button"
+                          onClick={() => setCancelTarget(b)}
+                          className="mb-btn mb-btn-quiet"
+                        >
+                          Cancel
+                        </button>
                       )}
                     </div>
                   </div>
                 </div>
-              </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      {/* Rate Meetup Modal */}
+      {ratingTarget && (
+        <RateMeetupModal
+          show={Boolean(ratingTarget)}
+          onHide={() => setRatingTarget(null)}
+          booking={ratingTarget}
+          onReviewSubmitted={() => {
+            loadBookings();
+            setToast("🎉 Thank you! Your friendly rating has been submitted.");
+          }}
+        />
+      )}
+
+      {/* Cancel modal */}
+      {cancelTarget && (
+        <div className="mb-overlay" onClick={() => setCancelTarget(null)}>
+          <div
+            className="mb-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cancel-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="mb-modal-close"
+              onClick={() => setCancelTarget(null)}
+              aria-label="Close"
+            >
+              <FiX size={18} />
+            </button>
+            <div className="mb-modal-icon">
+              <FiAlertTriangle size={24} />
             </div>
-          ))}
+            <h3 id="cancel-title">Cancel this booking?</h3>
+            <p>
+              Your booking with <strong>{cancelTarget.companionName}</strong> on{" "}
+              <strong>{cancelTarget.date}</strong> will be cancelled. The{" "}
+              <strong>{formatINR(cancelTarget.totalAmount)}</strong> held in escrow will be
+              refunded to your Velora Wallet right away.
+            </p>
+            <div className="mb-modal-actions">
+              <button
+                type="button"
+                className="mb-btn mb-btn-outline"
+                onClick={() => setCancelTarget(null)}
+              >
+                Keep booking
+              </button>
+              <button type="button" className="mb-btn mb-btn-danger" onClick={confirmCancel}>
+                Cancel booking
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div className="mb-toast" role="status">
+          <FiCheckCircle size={18} /> {toast}
         </div>
       )}
     </div>

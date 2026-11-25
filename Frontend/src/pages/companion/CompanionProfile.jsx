@@ -13,11 +13,9 @@ import {
   FiCalendar,
   FiMessageCircle,
   FiUpload,
-  FiVideo,
   FiImage,
   FiTrash2,
   FiPlus,
-  FiPhone,
   FiShare2,
   FiX,
   FiMaximize2,
@@ -26,11 +24,8 @@ import {
   FiChevronRight,
   FiBriefcase,
   FiUser,
-  FiLock,
   FiAlertCircle,
-  FiTarget,
-  FiEye,
-  FiSend
+  FiTarget
 } from "react-icons/fi";
 import confetti from "canvas-confetti";
 import {
@@ -42,9 +37,8 @@ import {
 } from "../../utils/mockStorage";
 import { calculateCompatibility } from "../../utils/compatibility";
 import { useAuth } from "../../context/AuthContext";
-import { useCall } from "../../context/CallContext";
+
 import CompanionBookingModal from "../../components/companion/CompanionBookingModal";
-import DateRequestModal from "../../components/dating/DateRequestModal";
 
 const FALLBACK_PHOTO =
   "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800";
@@ -53,16 +47,13 @@ const CompanionProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
-  const callContext = useCall();
-  const startCall = callContext?.startCall;
 
   const [companion, setCompanion] = useState(null);
   const [activePhotoIdx, setActivePhotoIdx] = useState(0);
   const [lightboxIdx, setLightboxIdx] = useState(null);
 
-  // Booking modals
+  // Booking modal
   const [showBookingModal, setShowBookingModal] = useState(false);
-  const [showDateModal, setShowDateModal] = useState(false);
 
   // Upload sheet (owner only)
   const [sheet, setSheet] = useState(null); // null | "photo"
@@ -74,11 +65,11 @@ const CompanionProfile = () => {
   const [toast, setToast] = useState(null);
   const toastTimer = useRef(null);
 
-
+  // Mobile: bio expand + swipe gestures
+  const [bioOpen, setBioOpen] = useState(false);
+  const touchX = useRef(null);
 
   const compat = useMemo(() => calculateCompatibility(companion), [companion]);
-
-
 
   useEffect(() => {
     const data = getCompanionById(id);
@@ -165,7 +156,6 @@ const CompanionProfile = () => {
     navigate(`/messages?convo=${convo.id}`);
   };
 
-
   const addPhoto = (value) => {
     const updated = addPhotoToCompanion(ownerKey, value);
     setCompanion({ ...updated });
@@ -219,6 +209,21 @@ const CompanionProfile = () => {
     [photos.length]
   );
 
+  /* ---------- swipe (mobile) ---------- */
+  const heroNext = () => setActivePhotoIdx((i) => (i + 1) % photos.length);
+  const heroPrev = () => setActivePhotoIdx((i) => (i - 1 + photos.length) % photos.length);
+  const swipeHandlers = (onNext, onPrev) => ({
+    onTouchStart: (e) => {
+      touchX.current = e.touches[0].clientX;
+    },
+    onTouchEnd: (e) => {
+      if (touchX.current === null || photos.length < 2) return;
+      const dx = e.changedTouches[0].clientX - touchX.current;
+      touchX.current = null;
+      if (Math.abs(dx) > 45) (dx < 0 ? onNext : onPrev)();
+    }
+  });
+
   useEffect(() => {
     if (lightboxIdx === null) return;
     const onKey = (e) => {
@@ -256,6 +261,12 @@ const CompanionProfile = () => {
   const isFemale = companion.gender === "FEMALE";
   const dp = photos[0];
   const rate = companion.hourlyRate || 599;
+  const rating = companion.rating || 4.9;
+  const reviews = companion.reviewCount || 28;
+  const cityLabel = `${companion.area ? `${companion.area}, ` : ""}${companion.city || "Delhi NCR"}`;
+  const bioText =
+    companion.bio ||
+    "Friendly, engaging and courteous. Available for coffee chats, dinner walks, shopping company and events.";
 
   /* ---------- render ---------- */
   return (
@@ -272,11 +283,21 @@ const CompanionProfile = () => {
               <FiUser size={13} /> Owner view
             </span>
           )}
-          <button type="button" className="cp-btn cp-btn-ghost" onClick={handleLike}>
-            <FiHeart size={16} className="cp-rose" /> Like
+          <button
+            type="button"
+            className="cp-btn cp-btn-ghost cp-btn-icon-sm"
+            onClick={handleLike}
+            aria-label="Like"
+          >
+            <FiHeart size={17} className="cp-rose" /> <span className="cp-btn-label">Like</span>
           </button>
-          <button type="button" className="cp-btn cp-btn-ghost" onClick={handleShare}>
-            <FiShare2 size={16} /> Share
+          <button
+            type="button"
+            className="cp-btn cp-btn-ghost cp-btn-icon-sm"
+            onClick={handleShare}
+            aria-label="Share profile"
+          >
+            <FiShare2 size={17} /> <span className="cp-btn-label">Share</span>
           </button>
         </div>
       </div>
@@ -285,7 +306,7 @@ const CompanionProfile = () => {
         {/* ================= LEFT: media ================= */}
         <div className="cp-left">
           {/* Hero photo */}
-          <div className="cp-card cp-hero">
+          <div className="cp-card cp-hero" {...swipeHandlers(heroNext, heroPrev)}>
             <img
               src={photos[activePhotoIdx]}
               alt={companion.firstName}
@@ -335,34 +356,95 @@ const CompanionProfile = () => {
               </>
             )}
 
+            {photos.length > 1 && (
+              <div className="cp-dots" aria-hidden="true">
+                {photos.map((_, i) => (
+                  <span key={i} className={i === activePhotoIdx ? "is-active" : ""} />
+                ))}
+              </div>
+            )}
+
             <div className="cp-hero-bottom">
-              <button
-                type="button"
-                className="cp-glass-btn"
-                onClick={() => setLightboxIdx(activePhotoIdx)}
-              >
-                <FiMaximize2 size={14} /> {activePhotoIdx + 1} / {photos.length}
-              </button>
-              {isOwner && photos.length > 1 && (
+              <div className="cp-hero-caption">
+                <strong>
+                  {companion.firstName}, {companion.age}
+                </strong>
+                <div className="cp-hero-meta">
+                  <span>
+                    <FiMapPin size={13} /> {cityLabel}
+                  </span>
+                  <span className="cp-hero-rating">
+                    <FiStar size={13} /> {rating} ({reviews})
+                  </span>
+                </div>
+              </div>
+              <div className="cp-hero-actions">
                 <button
                   type="button"
-                  className="cp-glass-btn cp-glass-icon"
-                  onClick={() => handleDeletePhoto(activePhotoIdx)}
-                  aria-label="Delete this photo"
+                  className="cp-glass-btn"
+                  onClick={() => setLightboxIdx(activePhotoIdx)}
                 >
-                  <FiTrash2 size={15} />
+                  <FiMaximize2 size={15} /> <span className="cp-count-text">{activePhotoIdx + 1} / {photos.length}</span>
                 </button>
-              )}
+                {isOwner && photos.length > 1 && (
+                  <button
+                    type="button"
+                    className="cp-glass-btn cp-glass-icon"
+                    onClick={() => handleDeletePhoto(activePhotoIdx)}
+                    aria-label="Delete this photo"
+                  >
+                    <FiTrash2 size={15} />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
+          {/* Thumbnails */}
+          {photos.length > 1 && (
+            <div className="cp-thumbs">
+              {photos.map((p, idx) => (
+                <button
+                  key={p + idx}
+                  type="button"
+                  className={`cp-thumb ${idx === activePhotoIdx ? "is-active" : ""}`}
+                  onClick={() => setActivePhotoIdx(idx)}
+                  aria-label={`Show photo ${idx + 1}`}
+                >
+                  <img src={p} alt="" loading="lazy" />
+                </button>
+              ))}
+            </div>
+          )}
 
-          {/* Photo Lookbook & Aesthetic Snaps */}
-          <section className="cp-card cp-pad">
+          {/* Quick stats */}
+          <div className="cp-card cp-stats">
+            <div className="cp-stat">
+              <strong>
+                <FiStar size={15} /> {rating}
+              </strong>
+              <span>Rating</span>
+            </div>
+            <div className="cp-stat">
+              <strong>{reviews}</strong>
+              <span>Reviews</span>
+            </div>
+            <div className="cp-stat">
+              <strong>{companion.distanceKm ? `${companion.distanceKm} km` : "Nearby"}</strong>
+              <span>Distance</span>
+            </div>
+            <div className="cp-stat">
+              <strong>₹{rate}</strong>
+              <span>Per hour</span>
+            </div>
+          </div>
+
+          {/* Photo gallery */}
+          <section className="cp-card cp-pad cp-gallery">
             <div className="cp-section-head">
               <div>
                 <h2 className="cp-h2">
-                  <FiImage size={18} className="cp-rose" /> Lookbook & Aesthetic Moments
+                  <FiImage size={18} className="cp-rose" /> Photo gallery
                 </h2>
                 <p className="cp-sub">
                   Verified real-life photos of {companion.firstName}. Tap any photo to zoom in.
@@ -381,18 +463,20 @@ const CompanionProfile = () => {
 
             <div className="cp-moments-grid">
               {photos.map((p, idx) => (
-                <div
+                <button
+                  type="button"
                   key={p + idx}
                   className="cp-moment-card"
                   onClick={() => setLightboxIdx(idx)}
+                  aria-label={`Open photo ${idx + 1}`}
                 >
                   <img src={p} alt={`${companion.firstName} snapshot ${idx + 1}`} loading="lazy" />
                   <span className="cp-moment-shade" />
                   <span className="cp-moment-zoom">
-                    <FiMaximize2 size={16} />
+                    <FiMaximize2 size={14} />
                   </span>
                   <span className="cp-moment-badge">Photo {idx + 1}</span>
-                </div>
+                </button>
               ))}
               {isOwner && (
                 <button
@@ -422,16 +506,15 @@ const CompanionProfile = () => {
                   </h1>
                   <p className="cp-loc">
                     <FiMapPin size={13} />
-                    {companion.area ? `${companion.area}, ` : ""}
-                    {companion.city || "Delhi NCR"}
+                    {cityLabel}
                     {companion.distanceKm ? ` · ${companion.distanceKm} km away` : ""}
                   </p>
                 </div>
               </div>
               <div className="cp-rating">
                 <FiStar size={14} />
-                <strong>{companion.rating || 4.9}</strong>
-                <span>({companion.reviewCount || 28})</span>
+                <strong>{rating}</strong>
+                <span>({reviews})</span>
               </div>
             </div>
 
@@ -445,14 +528,14 @@ const CompanionProfile = () => {
                 </strong>
               </div>
               <span className="cp-chip cp-chip-white">
-                <FiLock size={12} /> Escrow protected
+                <FiCheck size={12} /> Pay in hand at meetup
               </span>
             </div>
 
             {/* Actions */}
             <button
               type="button"
-              className="cp-btn cp-btn-primary cp-btn-lg cp-block"
+              className="cp-btn cp-btn-primary cp-btn-lg cp-block cp-cta-inline"
               onClick={requireLogin(() => setShowBookingModal(true))}
             >
               <FiZap size={18} /> Book {companion.firstName}
@@ -462,7 +545,7 @@ const CompanionProfile = () => {
               <button
                 type="button"
                 className="cp-btn cp-btn-outline"
-                onClick={requireLogin(() => setShowDateModal(true))}
+                onClick={requireLogin(() => setShowBookingModal(true))}
               >
                 <FiCalendar size={15} /> Pick a plan
               </button>
@@ -473,56 +556,50 @@ const CompanionProfile = () => {
               >
                 <FiMessageCircle size={15} /> Chat
               </button>
-     
             </div>
 
-            {/* Compatibility Score Card */}
+            {/* Compatibility */}
             <div className="cp-compat-card">
-              <div className="cp-compat-badge-top">
-                <span className="cp-compat-score-pill">
-                  <FiHeart size={14} /> {compat.score}% Compatibility
-                </span>
-                <span className="small text-muted fw-bold" style={{ fontSize: "0.74rem" }}>
-                  Verified Chemistry
-                </span>
+              <div className="cp-compat-top">
+                <div className="cp-ring" style={{ "--p": compat.score }}>
+                  <div className="cp-ring-inner">
+                    <strong>{compat.score}%</strong>
+                    <small>match</small>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="cp-compat-title">
+                    <FiHeart size={15} /> Compatibility
+                  </h3>
+                  <p className="cp-compat-desc">{compat.highlightReason}</p>
+                </div>
               </div>
-              <p className="cp-compat-desc">{compat.highlightReason}</p>
 
               <div className="cp-compat-meters">
-                <div className="cp-meter-row">
-                  <span>Vibe & Lifestyle</span>
-                  <div className="cp-meter-bar-track">
-                    <div className="cp-meter-bar-fill" style={{ width: `${compat.breakdown.vibeMatch}%` }} />
+                {[
+                  ["Vibe & lifestyle", compat.breakdown.vibeMatch],
+                  ["Date style", compat.breakdown.dateStyle],
+                  ["Conversation", compat.breakdown.conversation]
+                ].map(([label, value]) => (
+                  <div key={label}>
+                    <div className="cp-meter-head">
+                      <span>{label}</span>
+                      <span>{value}%</span>
+                    </div>
+                    <div className="cp-meter-bar-track">
+                      <div className="cp-meter-bar-fill" style={{ width: `${value}%` }} />
+                    </div>
                   </div>
-                  <span>{compat.breakdown.vibeMatch}%</span>
-                </div>
-
-                <div className="cp-meter-row">
-                  <span>Date Style Synergy</span>
-                  <div className="cp-meter-bar-track">
-                    <div className="cp-meter-bar-fill" style={{ width: `${compat.breakdown.dateStyle}%` }} />
-                  </div>
-                  <span>{compat.breakdown.dateStyle}%</span>
-                </div>
-
-                <div className="cp-meter-row">
-                  <span>Conversation Chemistry</span>
-                  <div className="cp-meter-bar-track">
-                    <div className="cp-meter-bar-fill" style={{ width: `${compat.breakdown.conversation}%` }} />
-                  </div>
-                  <span>{compat.breakdown.conversation}%</span>
-                </div>
+                ))}
               </div>
 
               {compat.commonInterests && compat.commonInterests.length > 0 && (
-                <div className="mt-3 pt-2.5 border-top">
-                  <small className="d-block text-muted fw-bold mb-1.5" style={{ fontSize: "0.72rem", letterSpacing: "0.4px" }}>
-                    SHARED PASSIONS:
-                  </small>
-                  <div className="d-flex flex-wrap gap-1">
+                <div className="cp-compat-shared">
+                  <small>Shared interests</small>
+                  <div className="cp-tags">
                     {compat.commonInterests.map((item, i) => (
-                      <span key={i} className="cp-tag cp-tag-outline" style={{ fontSize: "0.74rem", padding: "3px 10px" }}>
-                        ✨ {item}
+                      <span key={i} className="cp-tag cp-tag-outline">
+                        {item}
                       </span>
                     ))}
                   </div>
@@ -539,10 +616,14 @@ const CompanionProfile = () => {
                 <FiBriefcase size={14} /> {companion.occupation}
               </p>
             )}
-            <p className="cp-bio">
-              {companion.bio ||
-                "Friendly, engaging and courteous. Available for coffee chats, dinner walks, shopping company and events."}
+            <p className={`cp-bio ${!bioOpen && bioText.length > 150 ? "is-clamped" : ""}`}>
+              {bioText}
             </p>
+            {bioText.length > 150 && (
+              <button type="button" className="cp-readmore" onClick={() => setBioOpen((o) => !o)}>
+                {bioOpen ? "Show less" : "Read more"}
+              </button>
+            )}
 
             {companion.interests && companion.interests.length > 0 && (
               <>
@@ -574,7 +655,7 @@ const CompanionProfile = () => {
             {/* Safety */}
             <div className="cp-safety">
               <div className="cp-safety-head">
-                <FiShield size={16} /> Safety and escrow
+                <FiShield size={16} /> Direct connect &amp; safety
               </div>
               <ul>
                 <li>
@@ -584,7 +665,7 @@ const CompanionProfile = () => {
                   <FiCheck size={13} /> Strictly platonic companionship, no intimate contact.
                 </li>
                 <li>
-                  <FiCheck size={13} /> Payment is released only after you confirm the date.
+                  <FiCheck size={13} /> Rental amount is paid directly in hand to companion at the meetup.
                 </li>
               </ul>
             </div>
@@ -594,17 +675,30 @@ const CompanionProfile = () => {
 
       {/* ===== Mobile booking bar ===== */}
       <div className="cp-mobilebar">
-        <div>
+        <div className="cp-mobilebar-price">
           <span>From</span>
-          <strong>₹{rate}/hr</strong>
+          <strong>
+            ₹{rate}
+            <small>/hr</small>
+          </strong>
         </div>
-        <button
-          type="button"
-          className="cp-btn cp-btn-primary"
-          onClick={requireLogin(() => setShowBookingModal(true))}
-        >
-          <FiZap size={16} /> Book now
-        </button>
+        <div className="cp-mobilebar-actions">
+          <button
+            type="button"
+            className="cp-btn cp-btn-outline cp-btn-chat"
+            onClick={requireLogin(handleOpenChat)}
+            aria-label={`Chat with ${companion.firstName}`}
+          >
+            <FiMessageCircle size={19} />
+          </button>
+          <button
+            type="button"
+            className="cp-btn cp-btn-primary"
+            onClick={requireLogin(() => setShowBookingModal(true))}
+          >
+            <FiZap size={16} /> Book {companion.firstName}
+          </button>
+        </div>
       </div>
 
       {/* ===== Photo lightbox ===== */}
@@ -635,6 +729,7 @@ const CompanionProfile = () => {
             src={photos[lightboxIdx]}
             alt="Full view"
             onClick={(e) => e.stopPropagation()}
+            {...swipeHandlers(lbNext, lbPrev)}
           />
           {photos.length > 1 && (
             <button
@@ -690,11 +785,7 @@ const CompanionProfile = () => {
                 </span>
                 <strong>Choose a photo from your device</strong>
                 <small>JPG, PNG or WebP</small>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFile}
-                />
+                <input type="file" accept="image/*" onChange={handleFile} />
               </label>
             ) : (
               <form onSubmit={handleUrlSubmit}>
@@ -716,7 +807,6 @@ const CompanionProfile = () => {
           </div>
         </div>
       )}
-
 
       {/* ===== Confirm ===== */}
       {confirmBox && (
@@ -759,11 +849,6 @@ const CompanionProfile = () => {
         show={showBookingModal}
         onHide={() => setShowBookingModal(false)}
         companion={companion}
-      />
-      <DateRequestModal
-        show={showDateModal}
-        onHide={() => setShowDateModal(false)}
-        partner={companion}
       />
     </div>
   );

@@ -1,4 +1,5 @@
 import { INITIAL_COMPANIONS } from "../constants/initialCompanions";
+import { checkProfanity, sanitizeComment } from "./profanityFilter";
 
 const DEFAULT_USER = {
   id: "user-client-01",
@@ -49,7 +50,7 @@ const INITIAL_BOOKINGS = [
     venue: "CyberHub, DLF Phase 2, Gurgaon",
     notes: "Outdoor seating at Cafe Delhi Heights. Casual chic attire.",
     totalAmount: 1547,
-    paymentMethod: "Velora Escrow Wallet",
+    paymentMethod: "Direct Cash/UPI in Hand",
     status: "CONFIRMED",
     createdAt: "2026-10-20T12:00:00.000Z"
   },
@@ -72,6 +73,27 @@ const INITIAL_BOOKINGS = [
     paymentMethod: "UPI Instant",
     status: "CONFIRMED",
     createdAt: "2026-10-21T09:30:00.000Z"
+  },
+  {
+    id: "BK-7710",
+    companionId: "comp-ananya-01",
+    companionName: "Ananya",
+    companionAge: 24,
+    companionPhoto: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600",
+    companionRate: 699,
+    companionArea: "CyberHub / DLF Phase 2",
+    date: "2026-10-18",
+    time: "18:00",
+    durationHours: 2,
+    activityName: "Coffee & Evening Walk",
+    activityId: "coffee",
+    venue: "CyberHub, DLF Phase 2, Gurgaon",
+    notes: "Wonderful evening walk and lively chat at Starbucks CyberHub.",
+    totalAmount: 1398,
+    paymentMethod: "Direct Cash in Hand",
+    status: "COMPLETED",
+    isRated: false,
+    createdAt: "2026-10-16T10:00:00.000Z"
   }
 ];
 
@@ -276,7 +298,9 @@ export const STORAGE_KEYS = {
   CONTACTS: "velora_contacts",
   ACTIVE_SESSION: "velora_active_session",
   VERIFICATION: "velora_verification",
-  COMPANIONS: "velora_companions"
+  COMPANIONS: "velora_companions",
+  SUBSCRIPTION: "velora_subscription",
+  REVIEWS: "velora_reviews"
 };
 
 const DEFAULT_VIDEOS = [
@@ -535,3 +559,280 @@ export const deleteVideoFromCompanion = (id, videoId) => {
   setStored(STORAGE_KEYS.COMPANIONS, updated);
   return updated.find(c => (c.userId === id || c.id === id));
 };
+
+
+/* ====================================================================
+   VELORA VIP MEMBERSHIP & CONNECT SUBSCRIPTION
+   ==================================================================== */
+export const DEFAULT_SUBSCRIPTION = {
+  planId: "vip-gold",
+  planName: "Velora VIP Connect Pass",
+  status: "ACTIVE",
+  price: 499,
+  billingCycle: "Monthly",
+  validUntil: "2026-12-31",
+  benefits: [
+    "Unlimited Direct Connects with Verified Companions",
+    "Zero Platform Fees on Companion Bookings",
+    "Pay Companion Directly in Hand (Cash / UPI)",
+    "Priority Live Chat & SafeTrack™ GPS Protection",
+    "Full Access to Secret Admirers & Mystery Vault"
+  ]
+};
+
+export const getSubscription = () => {
+  return getStored(STORAGE_KEYS.SUBSCRIPTION, DEFAULT_SUBSCRIPTION);
+};
+
+export const saveSubscription = (subscriptionData) => {
+  setStored(STORAGE_KEYS.SUBSCRIPTION, {
+    ...DEFAULT_SUBSCRIPTION,
+    ...subscriptionData,
+    updatedAt: new Date().toISOString()
+  });
+  return getSubscription();
+};
+
+/* ====================================================================
+   VELORA MUTUAL RATINGS & CLEAN REVIEWS SYSTEM
+   Both clients and companions have ratings & verified reviews.
+   Zero-tolerance for abusive or vulgar comments.
+   ==================================================================== */
+export const INITIAL_REVIEWS = [
+  // Reviews for Ananya (Companion)
+  {
+    id: "rev-ananya-01",
+    targetUserId: "comp-ananya-01",
+    targetName: "Ananya",
+    authorId: "user-client-01",
+    authorName: "Kabir Malhotra",
+    authorPhoto: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
+    authorRole: "CLIENT",
+    rating: 5,
+    date: "2026-10-19",
+    activity: "Coffee Walk & Evening Chat",
+    tags: ["Punctual & Polite", "Great Conversationalist", "Warm Vibe"],
+    comment: "Had an awesome coffee walk and chat with Ananya at CyberHub! She was extremely polite, punctual, and such an engaging friend. 100% recommended for friendly outings.",
+    verifiedMeetup: true,
+    status: "APPROVED"
+  },
+  {
+    id: "rev-ananya-02",
+    targetUserId: "comp-ananya-01",
+    targetName: "Ananya",
+    authorId: "user-client-02",
+    authorName: "Rohan Sharma",
+    authorPhoto: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200",
+    authorRole: "CLIENT",
+    rating: 5,
+    date: "2026-10-12",
+    activity: "Art Gallery Visit",
+    tags: ["Respectful & Safe", "Elegant & Chic"],
+    comment: "Ananya accompanied me to a modern art exhibition at India Habitat Centre. Wonderful etiquette and conversation. Made the event much more memorable.",
+    verifiedMeetup: true,
+    status: "APPROVED"
+  },
+  {
+    id: "rev-ananya-03",
+    targetUserId: "comp-ananya-01",
+    targetName: "Ananya",
+    authorId: "user-client-03",
+    authorName: "Aditya Verma",
+    authorPhoto: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=200",
+    authorRole: "CLIENT",
+    rating: 5,
+    date: "2026-10-05",
+    activity: "Dinner Outing",
+    tags: ["Warm Vibe", "Punctual & Polite"],
+    comment: "Very graceful and warm companion. Punctual and safe meetup. Enjoyed our conversation about startups and books.",
+    verifiedMeetup: true,
+    status: "APPROVED"
+  },
+
+  // Reviews for Tanya (Companion)
+  {
+    id: "rev-tanya-01",
+    targetUserId: "comp-tanya-03",
+    targetName: "Tanya",
+    authorId: "user-client-01",
+    authorName: "Kabir Malhotra",
+    authorPhoto: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
+    authorRole: "CLIENT",
+    rating: 5,
+    date: "2026-10-15",
+    activity: "Shopping Companion & Stylist",
+    tags: ["Elegant & Chic", "Punctual & Polite"],
+    comment: "Tanya has great styling sense and is so patient. She helped me pick out formal attire at DLF Mall of India.",
+    verifiedMeetup: true,
+    status: "APPROVED"
+  },
+
+  // Client Ratings: Reviews received by Client (Kabir Malhotra) from Companions!
+  {
+    id: "rev-client-01",
+    targetUserId: "user-client-01",
+    targetName: "Kabir Malhotra",
+    authorId: "comp-ananya-01",
+    authorName: "Ananya (Companion)",
+    authorPhoto: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200",
+    authorRole: "COMPANION",
+    rating: 5,
+    date: "2026-10-19",
+    activity: "Coffee Walk & Evening Chat",
+    tags: ["Gentleman & Polite", "Always Punctual", "100% Respectful"],
+    comment: "Kabir was an absolute gentleman and courteous friend throughout our coffee meetup in CyberHub! Very polite, respectful, and safe. A pleasure to accompany.",
+    verifiedMeetup: true,
+    status: "APPROVED"
+  },
+  {
+    id: "rev-client-02",
+    targetUserId: "user-client-01",
+    targetName: "Kabir Malhotra",
+    authorId: "comp-tanya-03",
+    authorName: "Tanya (Companion)",
+    authorPhoto: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=200",
+    authorRole: "COMPANION",
+    rating: 5,
+    date: "2026-10-15",
+    activity: "Shopping Tour",
+    tags: ["100% Respectful", "Trusted Friend", "Always Punctual"],
+    comment: "Extremely respectful client. Treated me with total dignity during our shopping tour at DLF Mall. Highly trusted friend on Velora!",
+    verifiedMeetup: true,
+    status: "APPROVED"
+  }
+];
+
+export const getAllReviews = () => {
+  return getStored(STORAGE_KEYS.REVIEWS, INITIAL_REVIEWS);
+};
+
+export const getReviewsForUser = (userId) => {
+  if (!userId) return [];
+  const reviews = getAllReviews();
+  return reviews.filter(
+    (r) => (r.targetUserId === userId || r.targetUserId === `comp-${userId}` || (userId.startsWith("comp-") && r.targetUserId === userId)) &&
+           r.status === "APPROVED"
+  );
+};
+
+export const getClientReviews = (clientId = "user-client-01") => {
+  const reviews = getAllReviews();
+  return reviews.filter(
+    (r) => (r.targetUserId === clientId || r.targetUserId === "user-client-01") &&
+           r.status === "APPROVED"
+  );
+};
+
+export const getReviewsStats = (userId) => {
+  const reviews = getReviewsForUser(userId);
+  if (!reviews || reviews.length === 0) {
+    return {
+      average: 4.98,
+      count: 42,
+      breakdown: { 5: 38, 4: 4, 3: 0, 2: 0, 1: 0 },
+      topTags: ["Punctual & Polite", "Great Conversationalist", "Respectful & Safe", "Warm Vibe"]
+    };
+  }
+
+  const sum = reviews.reduce((acc, r) => acc + (Number(r.rating) || 5), 0);
+  const avg = Number((sum / reviews.length).toFixed(2));
+  
+  const breakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+  const tagCounts = {};
+
+  reviews.forEach((r) => {
+    const star = Math.min(5, Math.max(1, Math.round(Number(r.rating) || 5)));
+    breakdown[star] = (breakdown[star] || 0) + 1;
+    if (Array.isArray(r.tags)) {
+      r.tags.forEach((t) => {
+        tagCounts[t] = (tagCounts[t] || 0) + 1;
+      });
+    }
+  });
+
+  const topTags = Object.entries(tagCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(([t]) => t);
+
+  return {
+    average: avg,
+    count: reviews.length,
+    breakdown,
+    topTags: topTags.length > 0 ? topTags : ["Punctual & Polite", "Great Conversationalist", "Respectful & Safe"]
+  };
+};
+
+export const addReview = ({
+  targetUserId,
+  targetName = "Companion",
+  authorId = "user-client-01",
+  authorName = "Kabir Malhotra",
+  authorPhoto = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
+  authorRole = "CLIENT",
+  rating = 5,
+  tags = [],
+  comment = "",
+  bookingId = null,
+  activity = "Social Outing"
+}) => {
+  // 1. Strict profanity and abusive language check
+  const profanityResult = checkProfanity(comment);
+  if (profanityResult.hasProfanity) {
+    throw new Error(profanityResult.message);
+  }
+
+  // 2. Format & store clean review
+  const reviews = getAllReviews();
+  const cleanComment = sanitizeComment(comment.trim());
+  const newReview = {
+    id: "rev-" + Date.now(),
+    targetUserId,
+    targetName,
+    authorId,
+    authorName,
+    authorPhoto,
+    authorRole,
+    rating: Math.min(5, Math.max(1, Number(rating) || 5)),
+    tags: Array.isArray(tags) ? tags : [],
+    comment: cleanComment,
+    bookingId,
+    activity,
+    verifiedMeetup: true,
+    status: "APPROVED",
+    date: new Date().toISOString().split("T")[0],
+    createdAt: new Date().toISOString()
+  };
+
+  const updatedReviews = [newReview, ...reviews];
+  setStored(STORAGE_KEYS.REVIEWS, updatedReviews);
+
+  // 3. Mark booking as rated if bookingId is provided
+  if (bookingId) {
+    const bookings = getBookings();
+    const updatedBookings = bookings.map((b) =>
+      b.id === bookingId ? { ...b, isRated: true, userRating: newReview.rating } : b
+    );
+    setStored(STORAGE_KEYS.BOOKINGS, updatedBookings);
+  }
+
+  // 4. Update companion rating in stored companions list
+  try {
+    const companions = getStoredCompanions();
+    const compMatch = companions.find((c) => c.userId === targetUserId || c.id === targetUserId);
+    if (compMatch) {
+      const stats = getReviewsStats(targetUserId);
+      const updatedComps = companions.map((c) =>
+        c.userId === targetUserId || c.id === targetUserId
+          ? { ...c, rating: stats.average, reviewsCount: stats.count }
+          : c
+      );
+      setStored(STORAGE_KEYS.COMPANIONS, updatedComps);
+    }
+  } catch (err) {
+    console.error("Could not update companion stats:", err);
+  }
+
+  return newReview;
+};
+

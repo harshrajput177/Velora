@@ -25,7 +25,7 @@ import VerificationOnboarding from "../pages/auth/VerificationOnboarding";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import CompanionDashboard from "../pages/companion/CompanionDashboard";
 import CompanionProfile from "../pages/companion/CompanionProfile";
-import CallRoom from "../pages/calls/CallRoom";
+
 
 import { useAuth } from "../context/AuthContext";
 
@@ -72,8 +72,7 @@ const AppRoutes = () => {
         <Route path="admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
       </Route>
 
-      {/* Standalone Focus Views */}
-      <Route path="/calls/room" element={<ProtectedRoute><CallRoom /></ProtectedRoute>} />
+    
       <Route path="/safety/share/:token" element={<SharedTrip />} />
     </Routes>
   );

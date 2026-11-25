@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import ProfileCard from "../../components/profile/ProfileCard";
-import DateRequestModal from "../../components/dating/DateRequestModal";
 import CompanionBookingModal from "../../components/companion/CompanionBookingModal";
 import { INITIAL_COMPANIONS } from "../../constants/initialCompanions";
 import { addMatch } from "../../utils/mockStorage";
@@ -18,7 +17,6 @@ const Discover = () => {
   const [gender, setGender] = useState(searchParams.get("gender") || "ALL");
   const [activity, setActivity] = useState(searchParams.get("activity") || "all");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
-  const [datePartner, setDatePartner] = useState(null);
   const [bookCompanion, setBookCompanion] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -120,7 +118,6 @@ const Discover = () => {
                 onLike={handleLike}
                 onOpenDateModal={partner => {
                   if (!isAuthenticated) return navigate("/login");
-                  setDatePartner(partner);
                 }}
                 onOpenBookModal={companion => {
                   if (!isAuthenticated) return navigate("/login");
@@ -132,11 +129,6 @@ const Discover = () => {
         </div>
       )}
 
-      <DateRequestModal
-        show={!!datePartner}
-        onHide={() => setDatePartner(null)}
-        partner={datePartner}
-      />
       <CompanionBookingModal
         show={!!bookCompanion}
         onHide={() => setBookCompanion(null)}

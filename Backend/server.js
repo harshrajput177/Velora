@@ -1,102 +1,115 @@
 const express = require('express');
 const cors = require('cors');
+const { getNearbyPlaces, findCommonPlaces, validateCoordinates } = require('./services/locationService');
+const { placeCache } = require('./utils/cache');
+
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
 
-// Home API
+// Health Check API
 app.get("/", (req, res) => {
-  res.send("Express server is running successfully! 🚀");
-});
-
-// Test API
-app.get("/api/users", (req, res) => {
   res.json({
     success: true,
-    message: "Users fetched successfully",
-    users: [
-      { id: 1, name: "Harsh" },
-      { id: 2, name: "Rahul" }
+    message: "VELORA OpenStreetMap Backend Running 🚀",
+    version: "2.0.0",
+    endpoints: [
+      "GET  /api/nearby-places?venue=...&radius=5",
+      "POST /api/v1/locations/common-places",
+      "POST /api/v1/locations/validate"
     ]
   });
 });
 
-// Nearby Places API - Returns restaurants, malls, and hotels near a venue
-app.get("/api/nearby-places", (req, res) => {
-  const { venue, latitude, longitude, radius = 5 } = req.query;
-
-  // Mock data for nearby places by venue/area
-  const nearbyPlacesData = {
-    "CyberHub, DLF Phase 2, Gurgaon": {
-      lat: 28.4595,
-      lng: 77.0593,
-      restaurants: [
-        { id: 1, name: "Tapas Bar & Grill", type: "Restaurant", rating: 4.5, distance: 0.3, image: "🍽️" },
-        { id: 2, name: "The Leela Palace Restaurant", type: "Fine Dining", rating: 4.8, distance: 0.5, image: "🍷" },
-        { id: 3, name: "Cafe Coffee Day", type: "Cafe", rating: 4.2, distance: 0.2, image: "☕" },
-        { id: 4, name: "Biryani Express", type: "Restaurant", rating: 4.3, distance: 0.6, image: "🍛" }
-      ],
-      malls: [
-        { id: 101, name: "DLF Cyber Hub Mall", type: "Shopping Mall", rating: 4.4, distance: 0.1, image: "🛍️" },
-        { id: 102, name: "Galleria Market", type: "Shopping Complex", rating: 4.6, distance: 1.2, image: "🏬" }
-      ],
-      hotels: [
-        { id: 201, name: "The Leela Ambience Delhi", type: "5-Star Hotel", rating: 4.7, distance: 0.8, image: "🏨" },
-        { id: 202, name: "Hyatt Regency Delhi", type: "5-Star Hotel", rating: 4.6, distance: 1.5, image: "🏨" }
-      ]
-    },
-    "Khan Market, Central Delhi": {
-      lat: 28.5667,
-      lng: 77.0175,
-      restaurants: [
-        { id: 5, name: "The Ivy", type: "Restaurant", rating: 4.6, distance: 0.2, image: "🍽️" },
-        { id: 6, name: "Amici", type: "Italian", rating: 4.4, distance: 0.3, image: "🍝" },
-        { id: 7, name: "Kaach Niwas", type: "North Indian", rating: 4.3, distance: 0.4, image: "🍛" }
-      ],
-      malls: [
-        { id: 103, name: "Khan Market Shopping", type: "Market", rating: 4.5, distance: 0, image: "🛍️" }
-      ],
-      hotels: [
-        { id: 203, name: "Hotel Delhi Ashok", type: "4-Star Hotel", rating: 4.5, distance: 0.5, image: "🏨" },
-        { id: 204, name: "The Ashoka New Delhi", type: "Luxury Hotel", rating: 4.6, distance: 0.6, image: "🏨" }
-      ]
-    },
-    "DLF Mall of India, Sector 18 Noida": {
-      lat: 28.5921,
-      lng: 77.3758,
-      restaurants: [
-        { id: 8, name: "Mainland China", type: "Chinese", rating: 4.4, distance: 0.1, image: "🥢" },
-        { id: 9, name: "Theobroma", type: "Bakery Cafe", rating: 4.5, distance: 0.2, image: "🍰" },
-        { id: 10, name: "Smokeys", type: "BBQ Restaurant", rating: 4.3, distance: 0.3, image: "🍖" }
-      ],
-      malls: [
-        { id: 104, name: "DLF Mall of India", type: "Large Mall", rating: 4.6, distance: 0, image: "🛍️" }
-      ],
-      hotels: [
-        { id: 205, name: "Noida Hilton", type: "5-Star Hotel", rating: 4.5, distance: 0.8, image: "🏨" }
-      ]
+// Validate coordinates API
+app.post("/api/v1/locations/validate", (req, res) => {
+  try {
+    const { latitude, longitude } = req.body;
+    if (latitude === undefined || longitude === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Latitude and longitude are required"
+      });
     }
-  };
 
-  // Default to first venue if not found
-  const venueKey = Object.keys(nearbyPlacesData).find(key => key.toLowerCase().includes(venue?.toLowerCase() || "cyber"));
-  const places = nearbyPlacesData[venueKey] || nearbyPlacesData["CyberHub, DLF Phase 2, Gurgaon"];
+    validateCoordinates(parseFloat(latitude), parseFloat(longitude));
 
-  res.json({
-    success: true,
-    message: "Nearby places fetched successfully",
-    venue: venueKey,
-    coordinates: { lat: places.lat, lng: places.lng },
-    restaurants: places.restaurants,
-    malls: places.malls,
-    hotels: places.hotels,
-    total: places.restaurants.length + places.malls.length + places.hotels.length
-  });
+    res.json({
+      success: true,
+      message: "Coordinates are valid",
+      coordinates: { latitude: parseFloat(latitude), longitude: parseFloat(longitude) }
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message
+    });
+  }
 });
 
-// Server start
+// Nearby Places API (Works with venue name or lat/lon coordinates)
+const handleNearbyPlaces = async (req, res) => {
+  try {
+    const { venue, latitude, longitude, radius = 5, userLatitude, userLongitude } = req.query;
+
+    const data = await getNearbyPlaces({
+      venue,
+      latitude: latitude ? parseFloat(latitude) : null,
+      longitude: longitude ? parseFloat(longitude) : null,
+      radius: parseInt(radius) || 5,
+      userLatitude: userLatitude ? parseFloat(userLatitude) : null,
+      userLongitude: userLongitude ? parseFloat(userLongitude) : null
+    });
+
+    res.json(data);
+  } catch (error) {
+    console.error("Nearby places error:", error.message);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to fetch nearby places"
+    });
+  }
+};
+
+app.get("/api/nearby-places", handleNearbyPlaces);
+app.get("/api/real-nearby-places", handleNearbyPlaces); // Alias for backwards compatibility
+
+// Common places between two users (e.g. BF & GF)
+app.post("/api/v1/locations/common-places", async (req, res) => {
+  try {
+    const { user1, user2, radiusKm = 10, venue } = req.body;
+
+    if (!user1 || !user2 || user1.latitude === undefined || user1.longitude === undefined || user2.latitude === undefined || user2.longitude === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Both user coordinates (user1, user2) are required"
+      });
+    }
+
+    const u1Lat = parseFloat(user1.latitude);
+    const u1Lon = parseFloat(user1.longitude);
+    const u2Lat = parseFloat(user2.latitude);
+    const u2Lon = parseFloat(user2.longitude);
+    const rad = parseInt(radiusKm) || 10;
+
+    const result = await findCommonPlaces(u1Lat, u1Lon, u2Lat, u2Lon, rad, venue);
+    res.json(result);
+  } catch (error) {
+    console.error("Common places error:", error.message);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to calculate common places"
+    });
+  }
+});
+
+// Start Express Server
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`\n✅ VELORA OpenStreetMap API Server Running on http://localhost:${PORT}`);
+  console.log("📍 GET  /api/nearby-places?venue=CyberHub&radius=5");
+  console.log("📍 POST /api/v1/locations/common-places\n");
 });
+
+module.exports = app;

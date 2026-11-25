@@ -1,0 +1,726 @@
+/* =====================================================
+   VELORA MEMBERSHIP / SUBSCRIPTION MODAL STYLES
+   File: Frontend/src/components/subscription/SubscriptionModal.css
+   All classes uniquely prefixed with 'vsub-' to prevent collisions
+   ===================================================== */
+
+.vsub-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: rgba(18, 8, 20, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: vsubFade 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+.vsub-overlay *,
+.vsub-overlay *::before,
+.vsub-overlay *::after {
+  box-sizing: border-box;
+}
+
+.vsub-dialog {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 920px;
+  max-height: calc(100vh - 48px);
+  background: #FFFFFF;
+  border-radius: 24px;
+  box-shadow: 0 30px 80px -15px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(225, 29, 72, 0.12);
+  overflow: hidden;
+  position: relative;
+  margin: auto;
+  animation: vsubPop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Mobile drag pill indicator */
+.vsub-mobile-handle {
+  width: 38px;
+  height: 4px;
+  background: #D5CBD2;
+  border-radius: 999px;
+  margin: 8px auto 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Header */
+.vsub-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 20px 26px 14px;
+  border-bottom: 1px solid #EFE6EC;
+  background: #FAF7F9;
+  flex-shrink: 0;
+}
+
+.vsub-header-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.vsub-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #FFF1F4;
+  color: #E11D48;
+  border: 1px solid #FCD4DD;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.vsub-star-icon {
+  color: #E11D48;
+}
+
+.vsub-title {
+  font-family: 'Bricolage Grotesque', 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #140817;
+  margin: 0 0 3px;
+  line-height: 1.2;
+}
+
+.vsub-subtitle {
+  font-size: 0.82rem;
+  color: #6B5B72;
+  margin: 0;
+  max-width: 620px;
+  line-height: 1.4;
+}
+
+.vsub-close-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid #EFE6EC;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6B5B72;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.vsub-close-btn:hover {
+  background: #FFF1F4;
+  color: #E11D48;
+  border-color: #FCD4DD;
+}
+
+/* Scrollable Body Content */
+.vsub-body {
+  padding: 16px 24px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.vsub-alert-success {
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  color: #065F46;
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+/* Sleek Quick Trust Strip */
+.vsub-quick-trust {
+  margin-bottom: 16px;
+}
+
+.vsub-trust-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #1A0A1D 0%, #2A0E2E 100%);
+  color: #FFFFFF;
+  border-radius: 12px;
+  padding: 9px 14px;
+  border: 1px solid rgba(225, 29, 72, 0.25);
+}
+
+.vsub-trust-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.vsub-trust-txt {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.35;
+}
+
+.vsub-trust-txt strong {
+  color: #FFB3C1;
+}
+
+/* =====================================================
+   MOBILE PLAN SELECTOR (3 Side-by-Side Interactive Tiles)
+   ===================================================== */
+.vsub-mobile-selector-section {
+  margin-bottom: 14px;
+}
+
+.vsub-mobile-tiles-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.vsub-mobile-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 4px 10px;
+  border-radius: 14px;
+  background: #FFFFFF;
+  border: 2px solid #EFE6EC;
+  position: relative;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  min-height: 110px;
+}
+
+.vsub-mobile-tile:hover {
+  border-color: #E11D48;
+}
+
+.vsub-mobile-tile.is-selected {
+  border-color: #E11D48;
+  background: #FFF9FA;
+  box-shadow: 0 4px 16px rgba(225, 29, 72, 0.18);
+  transform: translateY(-2px);
+}
+
+.vsub-mobile-tile.is-popular {
+  border-color: #FCD4DD;
+}
+
+.vsub-mobile-tile.is-popular.is-selected {
+  border-color: #E11D48;
+}
+
+.vsub-mobile-tile-badge {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #4A3A52;
+  color: #FFFFFF;
+  font-size: 0.58rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  z-index: 2;
+}
+
+.vsub-mobile-tile-badge.badge-popular {
+  background: linear-gradient(135deg, #FF3366 0%, #E11D48 100%);
+  box-shadow: 0 2px 8px rgba(225, 29, 72, 0.4);
+}
+
+.vsub-m-name {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #140817;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.vsub-m-price-wrap {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  margin: 3px 0 1px;
+}
+
+.vsub-m-currency {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #E11D48;
+}
+
+.vsub-m-price {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #140817;
+  letter-spacing: -0.5px;
+}
+
+.vsub-mobile-tile.is-selected .vsub-m-price {
+  color: #E11D48;
+}
+
+.vsub-m-period {
+  font-size: 0.62rem;
+  color: #6B5B72;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.vsub-m-radio {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid #D5CBD2;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.vsub-m-radio.is-checked {
+  background: #E11D48;
+  border-color: #E11D48;
+  color: #FFFFFF;
+}
+
+.vsub-m-active-tag {
+  position: absolute;
+  bottom: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #10B981;
+  color: #FFFFFF;
+  font-size: 0.55rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
+/* Mobile Perks Card */
+.vsub-mobile-perks-card {
+  background: #FAF7F9;
+  border: 1px solid #EFE6EC;
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.vsub-m-perks-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #EFE6EC;
+}
+
+.vsub-m-perks-title {
+  font-size: 0.78rem;
+  color: #4A3A52;
+}
+
+.vsub-m-perks-title strong {
+  color: #140817;
+}
+
+.vsub-m-savings-pill {
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.vsub-m-perks-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.vsub-m-perks-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: 0.76rem;
+  color: #2F2435;
+  line-height: 1.35;
+}
+
+.vsub-m-perk-check {
+  color: #22C55E;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+/* =====================================================
+   DESKTOP PLANS GRID (>=768px)
+   ===================================================== */
+.vsub-plans-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.vsub-plan-card {
+  border: 2px solid #EFE6EC;
+  border-radius: 18px;
+  padding: 18px;
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.vsub-plan-card:hover {
+  transform: translateY(-2px);
+  border-color: #E11D48;
+  box-shadow: 0 10px 24px rgba(225, 29, 72, 0.1);
+}
+
+.vsub-plan-card.is-selected {
+  border-color: #E11D48;
+  background: #FFFDFE;
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.15);
+}
+
+.vsub-plan-card.is-popular {
+  border-color: #E11D48;
+}
+
+.vsub-plan-badge {
+  position: absolute;
+  top: -11px;
+  right: 16px;
+  background: #4A3A52;
+  color: #FFFFFF;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.vsub-plan-badge.badge-popular {
+  background: linear-gradient(135deg, #FF3366 0%, #E11D48 100%);
+  box-shadow: 0 4px 10px rgba(225, 29, 72, 0.35);
+}
+
+.vsub-plan-head {
+  margin-top: 2px;
+}
+
+.vsub-plan-name {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: #140817;
+  margin: 0 0 6px;
+}
+
+.vsub-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.vsub-price-num {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #140817;
+  letter-spacing: -0.5px;
+}
+
+.vsub-price-period {
+  font-size: 0.8rem;
+  color: #6B5B72;
+  font-weight: 600;
+}
+
+.vsub-plan-desc {
+  font-size: 0.78rem;
+  color: #6B5B72;
+  margin: 0;
+  min-height: 32px;
+  line-height: 1.35;
+}
+
+.vsub-savings-chip {
+  display: inline-block;
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-bottom: 4px;
+}
+
+.vsub-plan-divider {
+  height: 1px;
+  background: #EFE6EC;
+  margin: 10px 0;
+}
+
+.vsub-features-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  flex: 1;
+}
+
+.vsub-features-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: #3F3345;
+  line-height: 1.35;
+}
+
+.vsub-feat-check {
+  color: #22C55E;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.vsub-select-btn-wrap {
+  margin-top: auto;
+}
+
+.vsub-select-btn {
+  width: 100%;
+  padding: 8px;
+  border-radius: 10px;
+  border: 1.5px solid #EFE6EC;
+  background: #FAF7F9;
+  color: #140817;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vsub-select-btn.btn-is-active,
+.vsub-plan-card.is-selected .vsub-select-btn {
+  background: #E11D48;
+  color: #FFFFFF;
+  border-color: #E11D48;
+}
+
+/* Trust row */
+.vsub-trust-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px dashed #EFE6EC;
+}
+
+.vsub-trust-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #4A3A52;
+}
+
+/* Footer */
+.vsub-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 24px;
+  background: #FAF7F9;
+  border-top: 1px solid #EFE6EC;
+  flex-shrink: 0;
+}
+
+.vsub-footer-summary span {
+  display: block;
+  font-size: 0.72rem;
+  color: #6B5B72;
+}
+
+.vsub-footer-summary strong {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #140817;
+}
+
+.vsub-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.vsub-btn-cancel {
+  padding: 9px 18px;
+  border-radius: 9999px;
+  border: 1px solid #EFE6EC;
+  background: #FFFFFF;
+  color: #4A3A52;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.vsub-btn-cancel:hover {
+  background: #F3EEF1;
+}
+
+.vsub-btn-confirm {
+  padding: 10px 22px;
+  border-radius: 9999px;
+  border: none;
+  background: linear-gradient(135deg, #FF3366 0%, #E11D48 100%);
+  color: #FFFFFF;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.vsub-btn-confirm:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(225, 29, 72, 0.45);
+}
+
+.vsub-btn-confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.vsub-footer-security {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 0.68rem;
+  color: #7B6E82;
+  margin-top: 4px;
+}
+
+@keyframes vsubFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes vsubPop {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes vsubSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* =====================================================
+   MOBILE VIEWPORT ENHANCEMENTS (< 768px)
+   Bottom-sheet style, zero-scroll plan switcher, 1-tap buy
+   ===================================================== */
+@media (max-width: 767px) {
+  .vsub-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+  .vsub-dialog {
+    max-height: 92vh;
+    border-radius: 24px 24px 0 0;
+    margin: 0;
+    animation: vsubSlideUp 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .vsub-header {
+    padding: 10px 16px 10px;
+  }
+  .vsub-title {
+    font-size: 1.18rem;
+  }
+  .vsub-subtitle {
+    font-size: 0.74rem;
+  }
+  .vsub-body {
+    padding: 12px 14px 10px;
+  }
+  .vsub-footer {
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 8px));
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+  .vsub-footer-actions {
+    width: 100%;
+  }
+  .vsub-btn-confirm {
+    width: 100%;
+    height: 46px;
+    justify-content: center;
+    font-size: 0.92rem;
+  }
+  .vsub-trust-row {
+    padding-top: 10px;
+    gap: 6px;
+    justify-content: center;
+  }
+  .vsub-trust-item {
+    font-size: 0.68rem;
+  }
+}

@@ -1,0 +1,379 @@
+/* =====================================================
+   VELORA REVIEWS & RATINGS LIST STYLES
+   File: Frontend/src/components/reviews/ReviewsList.css
+   All classes uniquely prefixed with 'vrev-'
+   ===================================================== */
+
+.vrev-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+/* Header */
+.vrev-header-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.vrev-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #FFF1F4;
+  color: #E11D48;
+  border: 1px solid #FCD4DD;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.vrev-title {
+  font-family: 'Bricolage Grotesque', 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #140817;
+  margin: 0 0 4px;
+}
+
+.vrev-subtitle {
+  font-size: 0.82rem;
+  color: #6B5B72;
+  margin: 0;
+}
+
+.vrev-rate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #FF3366 0%, #E11D48 100%);
+  color: #FFFFFF;
+  border: none;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.3);
+  transition: all 0.2s ease;
+}
+
+.vrev-rate-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(225, 29, 72, 0.4);
+}
+
+/* Summary Card */
+.vrev-summary-card {
+  display: grid;
+  grid-template-columns: 180px 1fr 1fr;
+  gap: 20px;
+  padding: 20px;
+  background: #FFFFFF;
+  border: 1px solid #EFE6EC;
+  border-radius: 18px;
+  box-shadow: 0 4px 18px rgba(20, 8, 23, 0.04);
+}
+
+.vrev-score-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-right: 18px;
+  border-right: 1px solid #EFE6EC;
+  text-align: center;
+}
+
+.vrev-big-score {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: #140817;
+  line-height: 1;
+}
+
+.vrev-star-gold {
+  color: #F59E0B;
+  fill: #F59E0B;
+}
+
+.vrev-score-sub {
+  font-size: 0.78rem;
+  color: #8C828D;
+  margin-top: 4px;
+}
+
+.vrev-meetups-count {
+  font-size: 0.74rem;
+  color: #E11D48;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+/* Rating Breakdown Bars */
+.vrev-bars-side {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+
+.vrev-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.74rem;
+}
+
+.vrev-bar-label {
+  width: 26px;
+  color: #6B5B72;
+  font-weight: 700;
+  text-align: right;
+}
+
+.vrev-bar-track {
+  flex: 1;
+  height: 7px;
+  background: #F3EEF1;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.vrev-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #F59E0B, #E11D48);
+  border-radius: 999px;
+}
+
+.vrev-bar-count {
+  width: 32px;
+  color: #8C828D;
+  font-weight: 600;
+}
+
+/* Badges Cloud */
+.vrev-badges-side {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 18px;
+  border-left: 1px solid #EFE6EC;
+}
+
+.vrev-badges-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #4A3A52;
+  margin-bottom: 8px;
+}
+
+.vrev-badges-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.vrev-quality-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #FAF7F9;
+  border: 1px solid #EFE6EC;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #3F3345;
+}
+
+/* Reviews Feed */
+.vrev-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vrev-card {
+  padding: 16px 18px;
+  background: #FFFFFF;
+  border: 1px solid #EFE6EC;
+  border-radius: 16px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.vrev-card:hover {
+  border-color: #FCD4DD;
+  box-shadow: 0 4px 16px rgba(225, 29, 72, 0.05);
+}
+
+.vrev-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.vrev-card-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid #FCD4DD;
+  flex-shrink: 0;
+}
+
+.vrev-card-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.vrev-card-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.vrev-card-author {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #140817;
+}
+
+.vrev-verified-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
+.vrev-card-activity {
+  font-size: 0.74rem;
+  color: #8C828D;
+  display: block;
+}
+
+.vrev-card-stars {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.vrev-card-stars svg.star-active {
+  color: #F59E0B;
+  fill: #F59E0B;
+}
+
+.vrev-card-stars svg.star-inactive {
+  color: #E5E7EB;
+}
+
+.vrev-card-rating-num {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #140817;
+  margin-left: 4px;
+}
+
+.vrev-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.vrev-tag-pill {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #FFF1F4;
+  color: #BE123C;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.vrev-card-comment {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #2F2435;
+  line-height: 1.45;
+  font-style: italic;
+}
+
+.vrev-empty {
+  padding: 32px 16px;
+  text-align: center;
+  background: #FFFFFF;
+  border: 1px dashed #EFE6EC;
+  border-radius: 16px;
+  color: #8C828D;
+  font-size: 0.88rem;
+}
+
+/* Policy / Anti-Abuse Banner */
+.vrev-policy-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #FAF7F9;
+  border: 1px solid #EFE6EC;
+  border-radius: 14px;
+}
+
+.vrev-policy-banner strong {
+  display: block;
+  font-size: 0.8rem;
+  color: #140817;
+}
+
+.vrev-policy-banner p {
+  margin: 2px 0 0;
+  font-size: 0.74rem;
+  color: #6B5B72;
+  line-height: 1.35;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .vrev-summary-card {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .vrev-score-side {
+    padding-right: 0;
+    border-right: none;
+    border-bottom: 1px solid #EFE6EC;
+    padding-bottom: 14px;
+  }
+  .vrev-badges-side {
+    padding-left: 0;
+    border-left: none;
+    border-top: 1px solid #EFE6EC;
+    padding-top: 14px;
+  }
+  .vrev-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .vrev-rate-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

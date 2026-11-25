@@ -68,8 +68,8 @@ const steps = [
   },
   {
     num: "03",
-    title: "SafeTrack™ GPS & Escrow",
-    text: "Your funds stay safe in escrow until the date concludes. Emergency GPS link shared with your trusted contact.",
+    title: "SafeTrack™ & In-Hand Pay",
+    text: "Zero booking fees on the app. Pay the rental rate directly to companion in hand at the public meetup.",
     Icon: FiShield
   },
   {
@@ -264,7 +264,7 @@ const Home = () => {
           32 Companions Active Now in Delhi NCR
         </span>
         <span className="rg-ticker-item d-none d-md-inline-flex">
-          <FiShield size={14} /> 100% 18+ ID Verified & SafeTrack™ Escrow
+          <FiShield size={14} /> 100% 18+ ID Verified & Direct Connect
         </span>
         <span className="rg-ticker-item d-none d-lg-inline-flex">
           <FiZap size={14} /> Avg Arrival: 25 Mins
@@ -417,7 +417,7 @@ const Home = () => {
             <span className="ic"><FiZap size={22} /></span>
             <div>
               <b>20–30 Min Arrival</b>
-              <span className="tx">Instant companion arrival with full escrow protection</span>
+              <span className="tx">Instant companion arrival with direct in-hand payment</span>
             </div>
           </div>
         </div>
@@ -586,7 +586,7 @@ const Home = () => {
             <div>
               <span className="rg-head-badge"><FiLock size={13} /> Simple & Safe</span>
               <h2>How rental booking works</h2>
-              <p>Four transparent steps, 100% consensual, and escrow-protected from start to finish.</p>
+              <p>Four transparent steps, 100% consensual, with zero booking fees on the app.</p>
             </div>
           </Reveal>
           <div className="rg-steps">

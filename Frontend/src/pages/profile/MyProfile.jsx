@@ -25,7 +25,7 @@ import {
   FiAlertCircle,
   FiClock
 } from "react-icons/fi";
-import { syncProfileToCompanions } from "../../utils/mockStorage";
+import { syncProfileToCompanions, getClientReviews } from "../../utils/mockStorage";
 
 const DEFAULT_DP =
   "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500";
@@ -67,6 +67,7 @@ const MyProfile = () => {
 
   const currentDp = photos[0] || DEFAULT_DP;
   const displayName = `${profile?.firstName || firstName} ${profile?.lastName || lastName}`.trim();
+  const clientReviews = getClientReviews(user?.id || "user-client-01");
 
   /* ---------------- Helpers ---------------- */
   const showToast = (message, type = "success") => {
@@ -265,17 +266,17 @@ const MyProfile = () => {
             <strong>₹{Number(profile?.hourlyRate || hourlyRate).toLocaleString()}</strong>
             <span>Per hour</span>
           </div>
-          <div className="vp-wallet">
-            <div className="vp-wallet-icon">
-              <FiCreditCard size={18} />
+          <div className="vp-wallet cursor-pointer" onClick={() => setShowSubModal(true)} style={{ cursor: "pointer" }} title="Manage Velora VIP Membership Pass">
+            <div className="vp-wallet-icon" style={{ background: "#FFF9E6", color: "#B45309" }}>
+              <FiStar size={18} />
             </div>
             <div>
-              <span className="vp-wallet-label">Escrow wallet</span>
-              <strong className="vp-wallet-amount">
-                ₹{wallet?.balance?.toLocaleString() || "8,500"}
+              <span className="vp-wallet-label">Connect Membership</span>
+              <strong className="vp-wallet-amount" style={{ fontSize: "0.95rem", color: "#B45309" }}>
+                VIP Active ⭐
               </strong>
-              <span className="vp-wallet-lock">
-                <FiLock size={11} /> ₹{wallet?.escrowLocked || "1,200"} in escrow
+              <span className="vp-wallet-lock" style={{ color: "#15803D" }}>
+                <FiCheck size={11} /> Unlimited Connects
               </span>
             </div>
           </div>
@@ -286,7 +287,8 @@ const MyProfile = () => {
       <nav className="vp-tabs" role="tablist">
         {[
           { id: "about", label: "About", icon: <FiShield size={16} /> },
-          { id: "photos", label: "Photos", icon: <FiImage size={16} /> }
+          { id: "photos", label: "Photos", icon: <FiImage size={16} /> },
+          { id: "reviews", label: "Trust & Ratings (5.0 ★)", icon: <FiStar size={16} /> }
         ].map((t) => (
           <button
             key={t.id}
@@ -386,6 +388,109 @@ const MyProfile = () => {
               </span>
               Add photo
             </button>
+          </div>
+        </section>
+      )}
+
+      {/* ===== Trust & Reviews Tab ===== */}
+      {tab === "reviews" && (
+        <section className="vp-card vp-pad">
+          <div className="vp-section-head">
+            <div>
+              <div className="d-inline-flex align-items-center gap-1 px-2 py-1 rounded-pill bg-danger-subtle text-danger fw-bold small text-uppercase mb-2">
+                <FiShield size={12} /> Verified Client Rating
+              </div>
+              <h2 className="vp-h2">Trust Score &amp; Friend Reviews</h2>
+              <p className="vp-sub">
+                Ratings given to you by companions after completed meetups. A high trust score gives you priority companion matching.
+              </p>
+            </div>
+          </div>
+
+          {/* Trust Highlights Grid */}
+          <div className="row g-3 my-2">
+            <div className="col-12 col-md-4">
+              <div className="p-3 rounded-4 bg-light border text-center h-100 d-flex flex-column justify-content-center">
+                <div className="d-flex align-items-center justify-content-center gap-2 mb-1">
+                  <span className="display-6 fw-bold text-dark">5.0</span>
+                  <FiStar size={26} className="text-warning fill-warning" />
+                </div>
+                <span className="small text-muted">Client Etiquette Score</span>
+                <span className="badge bg-success-subtle text-success mt-2 align-self-center py-2 px-3">
+                  <FiCheckCircle className="me-1" /> 100% Polite &amp; Respectful
+                </span>
+              </div>
+            </div>
+
+            <div className="col-12 col-md-8">
+              <div className="p-3 rounded-4 bg-light border h-100">
+                <span className="fw-bold small text-dark d-block mb-2">Verified Etiquette Badges Earned:</span>
+                <div className="d-flex flex-wrap gap-2">
+                  <span className="badge bg-white text-dark border py-2 px-3 rounded-pill fw-semibold">
+                    ⏰ 100% Punctual Outings
+                  </span>
+                  <span className="badge bg-white text-dark border py-2 px-3 rounded-pill fw-semibold">
+                    🤝 Gentleman &amp; Courteous
+                  </span>
+                  <span className="badge bg-white text-dark border py-2 px-3 rounded-pill fw-semibold">
+                    🛡️ Zero Conduct Incidents
+                  </span>
+                  <span className="badge bg-white text-dark border py-2 px-3 rounded-pill fw-semibold">
+                    💬 Engaging Conversationalist
+                  </span>
+                  <span className="badge bg-white text-dark border py-2 px-3 rounded-pill fw-semibold">
+                    ✨ Highly Recommended Client Friend
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* List of Reviews Received from Companions */}
+          <h3 className="vp-h3 mt-4 mb-3">Feedback from Companions</h3>
+          <div className="d-flex flex-column gap-3">
+            {clientReviews.length === 0 ? (
+              <div className="text-center py-4 text-muted border border-dashed rounded-3">
+                No reviews received yet. Complete an outing to receive your first companion review!
+              </div>
+            ) : (
+              clientReviews.map((rev) => (
+                <div key={rev.id} className="p-3 rounded-3 border bg-white shadow-sm">
+                  <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                    <div className="d-flex align-items-center gap-2">
+                      <img
+                        src={rev.authorPhoto}
+                        alt={rev.authorName}
+                        className="rounded-circle object-fit-cover"
+                        style={{ width: 40, height: 40, border: "1.5px solid #FCD4DD" }}
+                      />
+                      <div>
+                        <strong className="d-block small text-dark">{rev.authorName}</strong>
+                        <span className="text-muted" style={{ fontSize: "0.72rem" }}>
+                          {rev.activity} · {rev.date}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="d-flex align-items-center gap-1 text-warning">
+                      {[...Array(rev.rating || 5)].map((_, i) => (
+                        <FiStar key={i} size={14} className="fill-warning" />
+                      ))}
+                      <strong className="text-dark ms-1 small">{rev.rating || 5}.0</strong>
+                    </div>
+                  </div>
+                  {rev.tags && rev.tags.length > 0 && (
+                    <div className="d-flex flex-wrap gap-1 mb-2">
+                      {rev.tags.map((t, i) => (
+                        <span key={i} className="badge bg-danger-subtle text-danger fw-semibold" style={{ fontSize: "0.7rem" }}>
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <p className="fst-italic text-secondary small mb-0">“{rev.comment}”</p>
+                </div>
+              ))
+            )}
           </div>
         </section>
       )}
@@ -620,6 +725,7 @@ const MyProfile = () => {
           {toast.message}
         </div>
       )}
+      <SubscriptionModal show={showSubModal} onHide={() => setShowSubModal(false)} />
     </div>
   );
 };
